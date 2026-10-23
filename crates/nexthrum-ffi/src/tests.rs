@@ -368,3 +368,79 @@ mod application_tests {
         ));
     }
 }
+
+#[cfg(test)]
+mod search_tests {
+    use crate::dto::{BridgeError, BridgeSettings};
+    use crate::service::BridgeService;
+    use nexthrum_core::GotifyMessage;
+    use nexthrum_storage::StoragePaths;
+
+    fn service(root: &std::path::Path) -> BridgeService {
+        let service = BridgeService::new();
+        service
+            .set_storage_paths(
+                root.join("messages.sqlite").to_string_lossy().into_owned(),
+                root.join("settings.json").to_string_lossy().into_owned(),
+            )
+            .unwrap();
+        service
+            .set_settings(BridgeSettings {
+                server_url: "https://example.test".into(),
+                client_token: "token".into(),
+                auto_start: false,
+                history_retention_days: 7,
+                do_not_disturb_start: "22:00".into(),
+                do_not_disturb_end: "08:00".into(),
+            })
+            .unwrap();
+        service
+    }
+
+    fn message(id: i64, title: &str, body: &str) -> GotifyMessage {
+        GotifyMessage {
+            id,
+            appid: 1,
+            message: body.into(),
+            title: title.into(),
+            priority: 0,
+            date: "2026-10-23T02:05:00Z".into(),
+            extras: None,
+            read: false,
+            received_at: "2026-10-23T02:05:00Z".into(),
+        }
+    }
+
+    #[test]
+    fn search_returns_matches_and_the_global_unread_count() {
+        let root = tempfile::tempdir().unwrap();
+        let service = service(root.path());
+        let paths = StoragePaths::new(
+            root.path().join("messages.sqlite"),
+            root.path().join("settings.json"),
+        );
+        nexthrum_storage::save_message(&paths, &message(1, "Deploy finished", "ok")).unwrap();
+        nexthrum_storage::save_message(&paths, &message(2, "Build failed", "deploy error"))
+            .unwrap();
+        nexthrum_storage::save_message(&paths, &message(3, "Report", "all good")).unwrap();
+
+        let result = service.search_messages("deploy".into()).unwrap();
+        assert_eq!(result.messages.len(), 2);
+        assert_eq!(result.unread_count, 3);
+
+        assert!(service
+            .search_messages("absent".into())
+            .unwrap()
+            .messages
+            .is_empty());
+    }
+
+    #[test]
+    fn search_requires_configured_storage() {
+        let service = BridgeService::new();
+        assert_eq!(
+            service.search_messages("x".into()),
+            Err(BridgeError::StorageNotConfigured)
+        );
+    }
+}

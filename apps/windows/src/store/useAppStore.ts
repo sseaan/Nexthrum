@@ -52,6 +52,13 @@ interface AppStore {
   setAppNames: (names: Record<number, string>) => void;
   /** Display label for a source, falling back to `App <id>`. */
   appLabel: (appid: number) => string;
+
+  // Search
+  searchQuery: string;
+  /** Matches while searching; `null` means "show everything". */
+  searchResults: MessageListItem[] | null;
+  setSearchQuery: (query: string) => void;
+  setSearchResults: (results: MessageListItem[] | null) => void;
 }
 
 const defaultSettings: AppSettings = {
@@ -139,4 +146,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
       })),
     })),
   appLabel: (appid) => get().appNames[appid] ?? `App ${appid}`,
+
+  searchQuery: "",
+  searchResults: null,
+  setSearchQuery: (searchQuery) =>
+    set(() => ({
+      searchQuery,
+      // Clearing the field restores the full list immediately.
+      searchResults: searchQuery.trim() === "" ? null : get().searchResults,
+    })),
+  setSearchResults: (searchResults) => set({ searchResults }),
 }));

@@ -58,10 +58,17 @@ struct ContentView: View {
             if let problem = model.storageMessage {
                 banner(problem)
             }
-            if model.messages.isEmpty {
+            if model.isSearching && displayedMessages.isEmpty {
+                ContentUnavailableView(
+                    "No Matches",
+                    systemImage: "magnifyingglass",
+                    description: Text(L10n.t("no_search_matches", model.searchQuery))
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if model.messages.isEmpty {
                 emptyState
             } else {
-                if sources.count > 1 {
+                if sources.count > 1 && !model.isSearching {
                     MessageFilterBar(
                         sources: sources,
                         totalCount: model.messages.count,
@@ -124,6 +131,40 @@ struct ContentView: View {
                 }
                 .labelStyle(.iconOnly)
                 .help("Settings…")
+            }
+
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    TextField(
+                        "Search messages",
+                        text: Binding(
+                            get: { model.searchQuery },
+                            set: { model.updateSearch($0) }
+                        )
+                    )
+                    .textFieldStyle(.plain)
+                    .font(.subheadline)
+                    if model.isSearching {
+                        Button {
+                            model.clearSearch()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Clear search")
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                .frame(maxWidth: 260)
+
+                Spacer()
             }
 
             HStack(spacing: 6) {
@@ -198,6 +239,12 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private var displayedMessages: [MacMessage] {
+        let base = model.displayedMessages
+        guard !model.isSearching else { return base }
+        return MessageSourceGrouping.filter(base, selected: selectedSourceId)
+    }
+
     private var sources: [MessageSource] {
         MessageSourceGrouping.sources(from: model.messages) { model.sourceName(for: $0) }
     }
@@ -210,7 +257,7 @@ struct ContentView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(visibleMessages) { message in
+                    ForEach(displayedMessages) { message in
                         MessageCard(
                             message: message,
                             sourceName: model.sourceName(for: message.appId)

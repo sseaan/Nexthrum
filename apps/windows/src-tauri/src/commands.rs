@@ -70,6 +70,18 @@ pub async fn get_message_snapshot(
     nexthrum_core::message_service::get_message_snapshot(&repository)
 }
 
+/// Case-insensitive search over stored message titles and bodies.
+#[tauri::command]
+pub async fn search_messages(
+    state: State<'_, AppState>,
+    query: String,
+) -> Result<nexthrum_core::MessageSnapshot, String> {
+    let repository = nexthrum_storage::SqliteMessageRepository {
+        paths: state.storage_paths.clone(),
+    };
+    nexthrum_core::message_service::search_messages(&repository, &query)
+}
+
 #[tauri::command]
 pub async fn mark_message_read(
     app_handle: tauri::AppHandle,

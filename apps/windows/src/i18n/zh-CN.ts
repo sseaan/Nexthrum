@@ -22,6 +22,12 @@ const zh = {
     exit: "退出",
   },
 
+  search: {
+    placeholder: "搜索消息",
+    clear: "清除搜索",
+    noMatches: "没有匹配的消息"
+  },
+
   header: {
     title: "消息",
     unread: "{n} 条未读",

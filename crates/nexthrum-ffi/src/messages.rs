@@ -34,6 +34,31 @@ impl BridgeService {
             .collect())
     }
 
+    /// Case-insensitive substring search over title and body.
+    pub fn search_messages(&self, query: String) -> Result<BridgeMessageSnapshot, BridgeError> {
+        let paths = configured_storage_paths(&self.storage_paths)?;
+        let repository = nexthrum_storage::SqliteMessageRepository { paths };
+        let snapshot = nexthrum_core::message_service::search_messages(&repository, &query)
+            .map_err(|_| BridgeError::StorageFailed)?;
+        Ok(BridgeMessageSnapshot {
+            messages: snapshot
+                .messages
+                .into_iter()
+                .map(|message| BridgeMessage {
+                    id: message.id,
+                    app_id: message.appid,
+                    title: message.title,
+                    body: message.message,
+                    priority: message.priority,
+                    date: message.date,
+                    read: message.read,
+                    received_at: message.received_at,
+                })
+                .collect(),
+            unread_count: snapshot.unread_count,
+        })
+    }
+
     pub fn get_message_snapshot(&self) -> Result<BridgeMessageSnapshot, BridgeError> {
         let paths = configured_storage_paths(&self.storage_paths)?;
         let repository = nexthrum_storage::SqliteMessageRepository { paths };

@@ -99,3 +99,15 @@ describe("connection state", () => {
     expect(useAppStore.getState().connectionError).toBeNull();
   });
 });
+
+describe("search state", () => {
+  it("keeps results while typing and restores the full list when cleared", () => {
+    useAppStore.getState().setMessages([item(1, 5), item(2, 5)]);
+    useAppStore.getState().setSearchQuery("dep");
+    useAppStore.getState().setSearchResults([item(1, 5)]);
+    expect(useAppStore.getState().searchResults).toHaveLength(1);
+
+    useAppStore.getState().setSearchQuery("   ");
+    expect(useAppStore.getState().searchResults).toBeNull();
+  });
+});

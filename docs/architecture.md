@@ -77,6 +77,8 @@ macOS 保留 `KeychainCredentialStore` 与 `CredentialSettingsTransaction` 的�
 
 ## 4. 业务事件与操作
 
+消息搜索由 Core 用例 `message_service::search_messages` 承担：repository port 新增 `search(query)`，SQLite 用 `instr(lower(...))` 做子串匹配（避免 `LIKE` 通配符转义问题）并在同一只读事务中读取全局未读数；Windows 暴露 `search_messages` command，macOS 通过 `BridgeService.searchMessages(query:)` 调用。
+
 Gotify 的流式消息只带 `appid`，不含应用名，因此两个平台都会额外调用 `GET /application`（`X-Gotify-Key` 客户端令牌）解析来源名称，并在失败（403/404/离线）时回退为 `App <id>`：Windows `get_applications` command + Zustand `appNames`，macOS `BridgeService.listApplications()` + `AppModel.applicationNames`。
 
 消息列表 DTO（`MessageListItem`）携带 `priority` 与 `received_at`，由 SQLite 查询直接读取，UniFFI `BridgeMessage` 与 TS `MessageListItem` 均不再使用占位默认值。macOS FFI 保留 `get_message_snapshot` 及消息操作接口，另有 `get_messages`、`unread_count` 查询供兼容调用；Windows Tauri 仅暴露原子 `get_message_snapshot` 查询，不再注册已无前端调用的 `get_messages` 和 `get_unread_count` 旧命令。所有状态变更更新最新未读状态；本地清空与服务器端删除严格分离。

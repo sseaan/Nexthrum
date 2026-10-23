@@ -6,11 +6,28 @@ export function MessageList() {
   const { t } = useI18n();
   const messages = useAppStore((s) => s.messages);
   const selectedAppId = useAppStore((s) => s.selectedAppId);
+  const searchQuery = useAppStore((s) => s.searchQuery);
+  const searchResults = useAppStore((s) => s.searchResults);
 
+  const isSearching = searchQuery.trim() !== "";
+  const base = isSearching ? (searchResults ?? []) : messages;
   const filteredMessages =
-    selectedAppId !== null
-      ? messages.filter((m) => m.appid === selectedAppId)
-      : messages;
+    !isSearching && selectedAppId !== null
+      ? base.filter((m) => m.appid === selectedAppId)
+      : base;
+
+  if (isSearching && filteredMessages.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
+        <div className="text-center">
+          <p className="text-3xl mb-2" aria-hidden="true">🔍</p>
+          <p className="text-sm">
+            {t.search.noMatches} “{searchQuery.trim()}”
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (filteredMessages.length === 0) {
     return (

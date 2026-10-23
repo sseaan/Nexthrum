@@ -56,6 +56,12 @@ final class AppModel: ObservableObject {
     @Published var showsClearConfirmation = false
 
     @Published var pendingMessageID: Int64?
+    /// Search text; an empty value means "show everything".
+    @Published var searchQuery = ""
+    /// Matching messages while a search is active, `nil` otherwise.
+    @Published var searchResults: [MacMessage]?
+    /// Debounce handle for search keystrokes.
+    var searchTask: Task<Void, Never>?
     /// Incremented when a caller wants the window to show the Settings pane.
     /// Using state keeps navigation working on SDKs without `openSettings`.
 
@@ -178,6 +184,15 @@ final class AppModel: ObservableObject {
                 try bridge.setSettings(settings: currentBridgeSettings())
             }
         }
+    }
+
+    /// Messages the list should render: search results when searching.
+    var displayedMessages: [MacMessage] {
+        searchResults ?? messages
+    }
+
+    var isSearching: Bool {
+        !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var isConfigured: Bool {

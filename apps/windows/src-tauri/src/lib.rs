@@ -144,6 +144,7 @@ pub fn run() {
             commands::get_settings,
             commands::get_applications,
             commands::test_connection,
+            commands::search_messages,
             commands::get_message_snapshot,
             commands::mark_message_read,
             commands::delete_message,

@@ -23,6 +23,12 @@ const en = {
     exit: "Exit",
   },
 
+  search: {
+    placeholder: "Search messages",
+    clear: "Clear search",
+    noMatches: "No message matches"
+  },
+
   header: {
     title: "Messages",
     unread: "{n} unread",

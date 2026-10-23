@@ -193,6 +193,22 @@
         }
       }
     },
+    "Clear search": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜索"
+          }
+        }
+      }
+    },
     "Client Token": {
       "localizations": {
         "en": {
@@ -849,6 +865,22 @@
         }
       }
     },
+    "No Matches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Matches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配结果"
+          }
+        }
+      }
+    },
     "No Messages Yet": {
       "localizations": {
         "en": {
@@ -1245,6 +1277,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存或读取消息失败。"
+          }
+        }
+      }
+    },
+    "Search messages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索消息"
           }
         }
       }
@@ -1933,6 +1981,22 @@
           "stringUnit": {
             "state": "translated",
             "value": " 请将 Nexthrum 移入 /Applications 后重试。"
+          }
+        }
+      }
+    },
+    "no_search_matches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No message matches \"%1$@\"."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有消息匹配“%1$@”。"
           }
         }
       }

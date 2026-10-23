@@ -16,6 +16,8 @@ export function MessageHeader() {
   const unreadCount = useAppStore((s) => s.unreadCount);
   const connectionState = useAppStore((s) => s.connectionState);
   const connectionError = useAppStore((s) => s.connectionError);
+  const searchQuery = useAppStore((s) => s.searchQuery);
+  const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const { applyMutationSnapshot, currentRevision } = useMessageSnapshot();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [syncServer, setSyncServer] = useState(false);
@@ -95,6 +97,30 @@ export function MessageHeader() {
             />
           </svg>
         </button>
+      </div>
+
+      <div className="px-4 pb-1">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus-within:border-[var(--color-primary)] transition-colors max-w-[260px]">
+          <span className="text-[var(--color-text-secondary)] text-xs" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t.search.placeholder}
+            aria-label={t.search.placeholder}
+            className="flex-1 bg-transparent text-xs text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none"
+          />
+          {searchQuery !== "" && (
+            <button
+              onClick={() => setSearchQuery("")}
+              title={t.search.clear}
+              aria-label={t.search.clear}
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] text-xs"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 px-4 pb-2 pt-1 text-xs text-[var(--color-text-secondary)]">

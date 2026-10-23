@@ -208,6 +208,57 @@ pub fn get_message_snapshot(paths: &StoragePaths) -> Result<MessageSnapshot, Str
     })
 }
 
+/// Case-insensitive substring search over title and body.
+///
+/// `instr()` is used instead of `LIKE` so `%` and `_` in the query are literal.
+/// The unread count is read from the same transaction and stays global.
+pub fn search_messages(paths: &StoragePaths, query: &str) -> Result<MessageSnapshot, String> {
+    let mut conn = open_db(paths)?;
+    let transaction = conn
+        .transaction()
+        .map_err(|e| format!("Failed to start message search: {e}"))?;
+
+    let messages = {
+        let mut stmt = transaction
+            .prepare(
+                "SELECT id, appid, message, title, priority, date, read, received_at \
+                 FROM messages \
+                 WHERE instr(lower(title), lower(?1)) > 0 OR instr(lower(message), lower(?1)) > 0 \
+                 ORDER BY date DESC LIMIT 500",
+            )
+            .map_err(|e| format!("Failed to prepare message search: {e}"))?;
+        let rows = stmt
+            .query_map(params![query], |row| {
+                Ok(MessageListItem {
+                    id: row.get(0)?,
+                    appid: row.get(1)?,
+                    message: row.get(2)?,
+                    title: row.get(3)?,
+                    priority: row.get(4)?,
+                    date: row.get(5)?,
+                    read: row.get::<_, i32>(6)? != 0,
+                    received_at: row.get(7)?,
+                })
+            })
+            .map_err(|e| format!("Failed to run message search: {e}"))?;
+        rows.map(|row| row.map_err(|e| format!("Failed to read search row: {e}")))
+            .collect::<Result<Vec<_>, _>>()?
+    };
+
+    let unread_count = transaction
+        .query_row("SELECT COUNT(*) FROM messages WHERE read = 0", [], |row| {
+            row.get(0)
+        })
+        .map_err(|e| format!("Failed to count unread messages: {e}"))?;
+    transaction
+        .commit()
+        .map_err(|e| format!("Failed to finish message search: {e}"))?;
+    Ok(MessageSnapshot {
+        messages,
+        unread_count,
+    })
+}
+
 pub fn get_messages(paths: &StoragePaths) -> Result<Vec<MessageListItem>, String> {
     let conn = open_db(paths)?;
     let mut stmt = conn
@@ -323,6 +374,10 @@ impl nexthrum_core::message_service::MessageRepository for SqliteMessageReposito
         get_message_snapshot(&self.paths)
     }
 
+    fn search(&self, query: &str) -> Result<MessageSnapshot, String> {
+        search_messages(&self.paths, query)
+    }
+
     fn mark_read(&mut self, message_id: i64) -> Result<(), String> {
         mark_read(&self.paths, message_id)
     }
@@ -341,7 +396,7 @@ mod tests {
     use super::{
         cleanup_old_messages, clear_messages, delete_message, get_message_snapshot, get_messages,
         get_unread_count, load_settings, mark_read, migrate_schema, open_db, save_message,
-        save_settings, StoragePaths, SCHEMA_VERSION,
+        save_settings, search_messages, StoragePaths, SCHEMA_VERSION,
     };
     use crate::GotifyMessage;
 
@@ -440,6 +495,56 @@ mod tests {
         let stored = snapshot.messages.iter().find(|item| item.id == 9).unwrap();
         assert_eq!(stored.priority, 1);
         assert_eq!(stored.received_at, "2026-01-01T00:00:00Z");
+    }
+
+    #[test]
+    fn search_matches_title_and_body_case_insensitively() {
+        let paths = paths();
+        let mut deploy = message();
+        deploy.title = "Deploy finished".into();
+        deploy.message = "production rollout done".into();
+        let mut build = message();
+        build.id = 11;
+        build.title = "Build failed".into();
+        build.message = "deploy script exited with 1".into();
+        let mut unrelated = message();
+        unrelated.id = 12;
+        unrelated.title = "Nightly report".into();
+        unrelated.message = "all good".into();
+        save_message(&paths, &deploy).unwrap();
+        save_message(&paths, &build).unwrap();
+        save_message(&paths, &unrelated).unwrap();
+        mark_read(&paths, 9).unwrap();
+
+        let result = search_messages(&paths, "DEPLOY").unwrap();
+        assert_eq!(result.messages.len(), 2, "title and body are both searched");
+        assert_eq!(result.unread_count, 2, "unread count stays global");
+
+        let by_title = search_messages(&paths, "nightly").unwrap();
+        assert_eq!(by_title.messages.len(), 1);
+        assert_eq!(by_title.messages[0].id, 12);
+
+        assert!(search_messages(&paths, "absent")
+            .unwrap()
+            .messages
+            .is_empty());
+    }
+
+    #[test]
+    fn search_treats_wildcards_as_literal_characters() {
+        let paths = paths();
+        let mut plain = message();
+        plain.title = "100% done".into();
+        save_message(&paths, &plain).unwrap();
+        let mut other = message();
+        other.id = 20;
+        other.title = "100 done".into();
+        save_message(&paths, &other).unwrap();
+
+        // `%` must not behave as a LIKE wildcard.
+        let result = search_messages(&paths, "100%").unwrap();
+        assert_eq!(result.messages.len(), 1);
+        assert_eq!(result.messages[0].title, "100% done");
     }
 
     #[test]

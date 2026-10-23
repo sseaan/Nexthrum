@@ -12,6 +12,8 @@ pub trait MessageRepository {
     fn unread_count(&self) -> Result<i64, String>;
     fn messages(&self) -> Result<Vec<MessageListItem>, String>;
     fn snapshot(&self) -> Result<MessageSnapshot, String>;
+    /// Full-text-ish lookup over title and body; the unread count stays global.
+    fn search(&self, query: &str) -> Result<MessageSnapshot, String>;
     fn mark_read(&mut self, message_id: i64) -> Result<(), String>;
     fn delete_message(&mut self, message_id: i64) -> Result<(), String>;
     fn clear_messages(&mut self) -> Result<(), String>;
@@ -21,6 +23,21 @@ pub fn get_message_snapshot<R: MessageRepository>(
     repository: &R,
 ) -> Result<MessageSnapshot, String> {
     repository.snapshot()
+}
+
+/// Case-insensitive substring search over title and body.
+///
+/// Returns the matching messages with the **global** unread count, so the UI can
+/// filter without confusing the badge.
+pub fn search_messages<R: MessageRepository>(
+    repository: &R,
+    query: &str,
+) -> Result<MessageSnapshot, String> {
+    let trimmed = query.trim();
+    if trimmed.is_empty() {
+        return repository.snapshot();
+    }
+    repository.search(trimmed)
 }
 
 pub fn get_messages<R: MessageRepository>(repository: &R) -> Result<Vec<MessageListItem>, String> {
@@ -110,7 +127,7 @@ mod tests {
     use super::{
         clear_messages, clear_messages_snapshot, delete_message, delete_message_snapshot,
         get_message_snapshot, get_messages, get_unread_count, mark_message_read,
-        mark_message_read_snapshot, receive_message, MessageRepository,
+        mark_message_read_snapshot, receive_message, search_messages, MessageRepository,
     };
     use crate::{AppSettings, GotifyMessage};
     use chrono::Utc;
@@ -166,6 +183,22 @@ mod tests {
         fn snapshot(&self) -> Result<crate::MessageSnapshot, String> {
             Ok(crate::MessageSnapshot {
                 messages: self.messages()?,
+                unread_count: self.unread_count()?,
+            })
+        }
+
+        fn search(&self, query: &str) -> Result<crate::MessageSnapshot, String> {
+            let needle = query.to_lowercase();
+            let messages: Vec<crate::MessageListItem> = self
+                .messages()?
+                .into_iter()
+                .filter(|message| {
+                    message.title.to_lowercase().contains(&needle)
+                        || message.message.to_lowercase().contains(&needle)
+                })
+                .collect();
+            Ok(crate::MessageSnapshot {
+                messages,
                 unread_count: self.unread_count()?,
             })
         }
@@ -279,6 +312,45 @@ mod tests {
         let cleared = clear_messages_snapshot(&mut repository).unwrap();
         assert_eq!(cleared.messages.len(), 1);
         assert_eq!(cleared.unread_count, 0);
+    }
+
+    #[test]
+    fn search_use_case_matches_title_or_body_and_keeps_the_global_unread_count() {
+        let mut repository = FakeRepository {
+            unread: 2,
+            ..Default::default()
+        };
+        let mut first = message();
+        first.title = "Deploy finished".into();
+        let mut second = message();
+        second.id = 43;
+        second.title = "Build failed".into();
+        second.message = "deploy script error".into();
+        repository.saved = vec![first, second];
+
+        let by_title = search_messages(&repository, "deploy").unwrap();
+        assert_eq!(by_title.messages.len(), 2, "title and body both match");
+        assert_eq!(by_title.unread_count, 2, "count stays global");
+
+        let by_body = search_messages(&repository, "SCRIPT").unwrap();
+        assert_eq!(by_body.messages.len(), 1);
+        assert_eq!(by_body.messages[0].id, 43);
+
+        let none = search_messages(&repository, "nothing-matches").unwrap();
+        assert!(none.messages.is_empty());
+        assert_eq!(none.unread_count, 2);
+    }
+
+    #[test]
+    fn blank_search_falls_back_to_the_full_snapshot() {
+        let repository = FakeRepository {
+            saved: vec![message()],
+            unread: 1,
+            ..Default::default()
+        };
+        let snapshot = search_messages(&repository, "   ").unwrap();
+        assert_eq!(snapshot.messages.len(), 1);
+        assert_eq!(snapshot.unread_count, 1);
     }
 
     #[test]
