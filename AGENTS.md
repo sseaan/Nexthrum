@@ -63,6 +63,7 @@ cargo fmt --all --check
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 npm --prefix apps/windows run typecheck
+npm --prefix apps/windows test
 ```
 
 Windows 相关改动还可运行 `npm --prefix apps/windows run build` 验证前端产物。

@@ -73,6 +73,10 @@ jobs:
         working-directory: apps/windows
         run: npm run typecheck
 
+      - name: Frontend unit tests
+        working-directory: apps/windows
+        run: npm test
+
   macos:
     name: macOS arm64 / Rust + SwiftUI
     runs-on: macos-14

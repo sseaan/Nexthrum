@@ -72,7 +72,7 @@ Core 负责“发生什么”，平台层负责“如何展示通知/事件”�
 - Rust：fmt、clippy、单元测试、临时 SQLite repository/migration 测试。
 - 领域测试：消息去重、已读/未读、DND（含跨午夜）、保留清理、设置兼容、重连状态与配置更新。
 - Bridge：Rust 与 Swift DTO/事件映射测试；避免手工复制模型造成漂移。
-- Windows：`npm --prefix apps/windows run typecheck`、前端构建、Windows target `cargo check`。
+- Windows：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest：store 派生、快照竞态、时间格式）、前端构建、Windows target `cargo check`。
 - macOS：Rust macOS target 构建、Swift 编译及原生集成测试。
 - 发布：Windows 安装包/便携包；macOS arm64、最低 macOS 14.0，签名、公证、DMG/ZIP 策略待发布配置确定。
 

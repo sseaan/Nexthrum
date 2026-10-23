@@ -52,7 +52,7 @@ devlog/                   每日进展
 
 - Rust（workspace 根）：`cargo fmt --all --check`、`cargo test --workspace`、`cargo clippy --workspace --all-targets -- -D warnings`。
 - CI：`.github/workflows/ci.yml` 在 Windows 与 macOS arm64 上执行上述检查及 TypeScript、UniFFI 生成、Xcode build/XCTest；本地提交前应至少跑通 Rust 与 TypeScript 部分。
-- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows run build`。
+- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest）、`npm --prefix apps/windows run build`。
 - SQLite：临时数据库测试、迁移升级/回滚及旧用户数据兼容测试。
 - Core：DND 跨午夜、重复消息、读状态、清理、连接状态和设置更新测试。
 - macOS：Swift 编译及 XCTest；原生通知、菜单栏、启动项需在 macOS 环境集成验证。
