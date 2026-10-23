@@ -95,37 +95,45 @@ git clone https://github.com/sseaan/Nexthrum.git
 cd Nexthrum
 
 # Install frontend dependencies
-npm install
+npm --prefix apps/windows install
 
 # Start development (with hot reload)
-npm run tauri dev
+npm --prefix apps/windows run tauri dev
 
 # Build production
-npm run tauri build
+npm --prefix apps/windows run tauri build
 ```
 
 ### Project Structure
 
 ```
 Nexthrum/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   │   ├── MessageWindow/  # Message list & toolbar
-│   │   ├── SettingsWindow/ # Settings form
-│   │   └── common/         # Shared (TitleBar)
-│   ├── hooks/              # React hooks
-│   ├── store/              # Zustand state
-│   ├── i18n/               # Translations (zh-CN / en-US)
-│   ├── types/              # TypeScript types
-│   └── utils/              # Utilities
-├── src-tauri/              # Rust backend
-│   └── src/
-│       ├── lib.rs          # Commands, state, setup
-│       ├── websocket.rs    # WebSocket manager
-│       ├── storage.rs      # SQLite + settings
-│       └── tray.rs         # System tray
-├── docs/                   # Documentation
-├── devlog/                 # Development logs
+├── apps/
+│   ├── windows/            # Windows client (Tauri + React)
+│   │   ├── src/            # React frontend
+│   │   │   ├── components/ # MessageWindow / SettingsWindow / common
+│   │   │   ├── hooks/      # Tauri event listeners
+│   │   │   ├── store/      # Zustand state
+│   │   │   ├── i18n/       # Translations (zh-CN / en-US)
+│   │   │   ├── types/      # TypeScript types
+│   │   │   └── utils/      # Utilities
+│   │   └── src-tauri/      # Tauri host adapter
+│   │       └── src/
+│   │           ├── lib.rs         # State, setup, command registration
+│   │           ├── commands.rs    # Tauri commands
+│   │           ├── websocket.rs   # Event adapter for the Gotify client
+│   │           ├── credentials.rs # Windows Credential Manager
+│   │           ├── storage.rs     # Storage path resolution
+│   │           └── tray.rs        # System tray
+│   └── macos/              # macOS client (SwiftUI + Xcode)
+├── crates/                 # Shared Rust workspace
+│   ├── nexthrum-core/      # Domain models, use cases, DND policy
+│   ├── nexthrum-gotify/    # Gotify HTTP/WebSocket client
+│   ├── nexthrum-storage/   # SQLite repository + migrations
+│   └── nexthrum-ffi/       # UniFFI bridge for Swift
+├── scripts/                # Bindings generation, macOS build checks
+├── tools/uniffi-bindgen/   # Local Swift bindings generator
+├── docs/ devlog/           # Documentation and development logs
 └── .github/workflows/      # CI/CD
 ```
 
@@ -250,37 +258,45 @@ git clone https://github.com/sseaan/Nexthrum.git
 cd Nexthrum
 
 # 安装前端依赖
-npm install
+npm --prefix apps/windows install
 
 # 启动开发模式（热更新）
-npm run tauri dev
+npm --prefix apps/windows run tauri dev
 
 # 生产构建
-npm run tauri build
+npm --prefix apps/windows run tauri build
 ```
 
 ### 项目结构
 
 ```
 Nexthrum/
-├── src/                    # React 前端
-│   ├── components/         # UI 组件
-│   │   ├── MessageWindow/  # 消息列表和工具栏
-│   │   ├── SettingsWindow/ # 设置表单
-│   │   └── common/         # 公共组件（标题栏等）
-│   ├── hooks/              # React Hooks
-│   ├── store/              # Zustand 状态管理
-│   ├── i18n/               # 多语言翻译
-│   ├── types/              # TypeScript 类型定义
-│   └── utils/              # 工具函数
-├── src-tauri/              # Rust 后端
-│   └── src/
-│       ├── lib.rs          # 命令、状态、初始化
-│       ├── websocket.rs    # WebSocket 管理
-│       ├── storage.rs      # SQLite + 设置
-│       └── tray.rs         # 系统托盘
-├── docs/                   # 项目文档
-├── devlog/                 # 开发日志
+├── apps/
+│   ├── windows/            # Windows 客户端（Tauri + React）
+│   │   ├── src/            # React 前端
+│   │   │   ├── components/ # 消息窗口 / 设置窗口 / 公共组件
+│   │   │   ├── hooks/      # Tauri 事件监听
+│   │   │   ├── store/      # Zustand 状态管理
+│   │   │   ├── i18n/       # 多语言翻译
+│   │   │   ├── types/      # TypeScript 类型定义
+│   │   │   └── utils/      # 工具函数
+│   │   └── src-tauri/      # Tauri host adapter
+│   │       └── src/
+│   │           ├── lib.rs         # 状态、初始化、命令注册
+│   │           ├── commands.rs    # Tauri 命令
+│   │           ├── websocket.rs   # Gotify 客户端事件适配
+│   │           ├── credentials.rs # Windows 凭据管理器
+│   │           ├── storage.rs     # 存储路径解析
+│   │           └── tray.rs        # 系统托盘
+│   └── macos/              # macOS 客户端（SwiftUI + Xcode）
+├── crates/                 # 共享 Rust workspace
+│   ├── nexthrum-core/      # 领域模型、用例、DND 策略
+│   ├── nexthrum-gotify/    # Gotify HTTP/WebSocket 客户端
+│   ├── nexthrum-storage/   # SQLite repository + migrations
+│   └── nexthrum-ffi/       # Swift 用 UniFFI bridge
+├── scripts/                # bindings 生成、macOS 构建校验
+├── tools/uniffi-bindgen/   # 本地 Swift bindings 生成器
+├── docs/ devlog/           # 文档与开发日志
 └── .github/workflows/      # CI/CD
 ```
 

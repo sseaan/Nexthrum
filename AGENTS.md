@@ -1,101 +1,103 @@
-# AGENTS.md - Nexthrum 项目工作指引
+# AGENTS.md — Nexthrum 项目工作指引
 
-## 项目概述
+## 1. 项目概述
 
-Nexthrum 是一款 Windows 桌面应用，连接 Gotify 服务器并通过 Windows 原生通知展示消息。
-技术栈：**Tauri 2.0 + React 18 + TypeScript + Rust + SQLite**。
+Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端共用一套 Rust 业务内核：
 
-## 标准文档路径
+- **Windows**：Tauri 2 + React 18 + TypeScript
+- **macOS**：SwiftUI（arm64，最低 macOS 14.0），经 UniFFI 调用同一内核
+- **共享内核**：Rust workspace（`crates/`），消息、存储、连接规则只在这里实现一次
 
-在开始任何开发工作前，请先阅读相关标准文档：
+## 2. 仓库结构
+
+| 路径 | 职责 |
+|------|------|
+| `crates/nexthrum-core/` | 领域模型、用例（`message_service`）、DND/通知策略。**不得依赖 Tauri、UI、平台路径** |
+| `crates/nexthrum-gotify/` | Gotify HTTP/WebSocket、URL 构造、解码、退避重连、取消 |
+| `crates/nexthrum-storage/` | SQLite repository、schema migration、设置读写（路径由宿主注入） |
+| `crates/nexthrum-ffi/` | UniFFI bridge（`BridgeService`、稳定 DTO、事件轮询） |
+| `apps/windows/src-tauri/` | **仅 Windows host adapter**：窗口、托盘、通知、Tauri command、事件转发、Windows 凭据 |
+| `apps/windows/src/` | Windows React UI（Zustand store、组件、i18n） |
+| `apps/macos/` | SwiftUI app、Xcode 工程、XCTest、Keychain |
+| `tools/uniffi-bindgen/` | 本地 Swift bindings 生成器（CI 依赖，勿删） |
+| `scripts/` | macOS bindings 生成与 Xcode 构建校验 |
+| `docs/ devlog/` | 标准文档与每日开发日志 |
+| `.github/workflows/` | `ci.yml`（双平台检查）、`build.yml`（Windows 发布） |
+
+## 3. 标准文档
 
 | 文档 | 路径 | 内容 |
 |------|------|------|
 | 开发需求 | `docs/requirements.md` | 功能需求、用户故事、验收标准 |
-| 技术规范 | `docs/tech-spec.md` | 技术栈、项目结构、数据流、依赖版本 |
-| 设计规范 | `docs/design-spec.md` | UI 布局、色彩体系、交互规范、组件规格 |
-| 架构设计 | `docs/architecture.md` | 系统架构图、模块职责、数据持久化、通信协议 |
-| 开发指南 | `docs/development-guide.md` | 环境搭建、快速开始、开发流程、代码规范、Git 规范 |
-| 开发日志 | `devlog/YYYY-MM-DD.md` | 每日开发记录（完成事项 + 待办事项） |
+| 技术规范 | `docs/tech-spec.md` | 技术决策、目录、分层约束、测试门槛 |
+| 设计规范 | `docs/design-spec.md` | UI 布局、色彩、交互、平台差异 |
+| 架构设计 | `docs/architecture.md` | 架构图、模块职责、事件/Tauri 协议、持久化 |
+| 重构计划 | `docs/refactor-plan.md` | 迁移阶段与验收标准 |
+| 发布手册 | `docs/release.md` | 版本同步、签名/公证、更新策略、发布检查清单 |
+| 开发指南 | `docs/development-guide.md` | 环境搭建、开发流程、代码规范 |
+| 开发日志 | `devlog/YYYY-MM-DD.md` | 完成事项 + 待办（先看最新一篇了解进度） |
 
-## 工作原则
+## 4. 硬性架构约定
 
-### 1. 文档先行
+1. **业务只在 Core**：平台差异留在 adapter。新增消息规则先改 `nexthrum-core`，不要在 `apps/windows/src-tauri` 或 FFI 里重复编排。
+2. **UI 不接触存储**：前端与 Swift 只能通过 Tauri command / UniFFI DTO 访问消息。
+3. **后端拥有状态权威**：未读数与消息列表以 SQLite 快照为准；`new-message` 事件只插入列表，前端不得自行递增未读数。mutation command 直接返回 `MessageSnapshot`，不要“改完再查一次”。
+4. **凭据不进 JSON**：Windows token 存 Windows Credential Manager（`apps/windows/src-tauri/src/credentials.rs`），macOS 存 Keychain；`settings.json` 只放非敏感字段。
+5. **连接配置串行化**：`save_settings` / `connect_websocket` / `disconnect_websocket` 共用 `AppState.connection_update`，消息变更共用 `AppState.message_update`。
+6. **设置与连接解耦**：设置持久化成功后即使重连失败也要保留新设置，并返回明确错误。
+7. **迁移要向后兼容**：新增列必须走 migration，并考虑早期 schema 缺列（参考 `ensure_local_columns`）。
+8. **发布变更先读手册**：版本号需同时更新 `package.json` 与 `tauri.conf.json`（CI 校验一致），签名/公证与更新策略见 `docs/release.md`。
 
-- 修改功能前，先更新对应的标准文档
-- 新功能必须在 `docs/requirements.md` 中有对应条目
-- API 变更必须在 `docs/architecture.md` 中更新通信协议表
+## 5. 开发流程
 
-### 2. 代码风格
-
-- **TypeScript**：严格模式，函数组件 + Hooks，Zustand 管理全局状态
-- **Rust**：`rustfmt` 标准格式，`log` crate 分级日志，`#[tauri::command]` 暴露接口
-- **CSS**：Tailwind 工具类优先，自定义颜色使用 CSS 变量（定义在 `src/styles/index.css`）
-
-### 3. 开发流程
-
-1. **开始工作前**：
-   - 查看 `devlog/` 最新日志了解当前进度
-   - 阅读相关标准文档理解上下文
-
+1. **动手前**：读 `devlog/` 最新日志 + 相关标准文档；修改功能前先更新对应文档。
 2. **开发中**：
-   - 前端代码放在 `src/` 对应目录
-   - 后端代码放在 `src-tauri/src/` 对应模块
-   - 新增 Tauri command 需同步更新 `docs/architecture.md` 通信协议表
-   - 新增前端组件需遵循 `docs/design-spec.md` 设计规范
+   - 新 Tauri command：实现 → 在 `apps/windows/src-tauri/src/lib.rs` 的 `generate_handler!` 注册 → 更新 `docs/architecture.md` 事件/命令表
+   - 新 Core 用例：写 `MessageRepository` port 方法 → 用例函数 → 契约测试
+   - 新设置项：`AppSettings`（core）+ `defaultSettings`（TS）+ README/文档 + 表单控件；凭据类字段另走凭据模块
+   - 前端组件：遵循 `docs/design-spec.md`，用 Zustand store，不直接拼后端状态
+3. **提交前必须跑**：
 
-3. **完成后**：
-   - 运行 `npx tsc --noEmit` 检查前端类型
-   - 运行 `cargo check`（需本地 Rust 环境）检查后端编译
-   - 更新 `devlog/YYYY-MM-DD.md` 记录完成事项和待办
+```bash
+cargo fmt --all --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+npm --prefix apps/windows run typecheck
+```
 
-### 4. Git 提交规范
+Windows 相关改动还可运行 `npm --prefix apps/windows run build` 验证前端产物。
+
+macOS 相关改动还要：
+
+```bash
+scripts/generate-swift-bindings.sh
+swiftc -parse apps/macos/Generated/nexthrum_ffi.swift apps/macos/AppModel.swift
+scripts/build-macos-xcode.sh          # arm64 app + @rpath + plist 校验
+xcodebuild -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac \
+  -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
+```
+
+4. **收尾**：更新 `devlog/YYYY-MM-DD.md`（完成事项 + 待办）。
+
+## 6. 代码风格
+
+- **TypeScript**：严格模式、函数组件 + Hooks、Zustand；文案走 `apps/windows/src/i18n`，不硬编码 UI 字符串
+- **Rust**：`rustfmt` 默认格式、`log` 分级日志、错误用 `String`/`BridgeError` 明确分类，不吞错
+- **Swift**：SwiftUI 原生控件优先，业务判断留在 Core
+- **CSS**：Tailwind 工具类优先，自定义颜色用 `apps/windows/src/styles/index.css` 的 CSS 变量
+
+## 7. 数据位置
+
+- Windows：SQLite `%APPDATA%/Nexthrum/nexthrum_messages.db`，设置 `nexthrum_data/settings.json`，token 在 Credential Manager
+- macOS：Application Support/Nexthrum，token 在 Keychain
+- 调试日志：`RUST_LOG=debug npm --prefix apps/windows run tauri dev`
+
+## 8. Git 约定
 
 ```
 <type>(<scope>): <subject>
 ```
 
-- `feat`: 新功能
-- `fix`: 修复
-- `docs`: 文档
-- `refactor`: 重构
-- `chore`: 构建/工具
+`feat` / `fix` / `docs` / `refactor` / `test` / `chore`
 
-### 5. 关键约定
-
-- **数据存储**：SQLite 在 `%APPDATA%/Nexthrum/nexthrum_messages.db`，设置 JSON 在同目录子文件夹
-- **事件通信**：后端 → 前端用 `app.emit()`，前端 → 后端用 `invoke()`
-- **WebSocket**：由 Rust 后端管理（`websocket.rs`），断线自动重连（5 秒间隔）
-- **通知**：通过 `tauri-plugin-notification` 发送 Windows 原生通知
-- **窗口**：目前只有单窗口（`message`），消息和设置通过前端视图切换
-- **系统托盘**：托盘图标程序化生成，右键菜单含 Message List / Settings / Exit
-
-## 常见任务指引
-
-### 添加新设置项
-
-1. 在 `src/types/index.ts` 的 `AppSettings` 接口中添加字段
-2. 在 `src-tauri/src/lib.rs` 的 `AppSettings` struct 中添加字段（含 `Default`）
-3. 在 `src/store/useAppStore.ts` 的 `defaultSettings` 中添加默认值
-4. 在 `src/components/SettingsWindow/SettingsWindow.tsx` 中添加表单控件
-5. 在 `src-tauri/src/storage.rs` 的 `save_settings` / `load_settings` 中（JSON 自动处理）
-
-### 添加新 Tauri Command
-
-1. 在 `src-tauri/src/lib.rs` 中定义 `#[tauri::command]` 函数
-2. 在 `generate_handler![]` 宏中注册
-3. 在 `docs/architecture.md` 的通信协议表中添加记录
-4. 在前端通过 `invoke("command_name", { params })` 调用
-
-### 添加新前端组件
-
-1. 在 `src/components/` 下创建目录和文件
-2. 遵循 `docs/design-spec.md` 的色彩和布局规范
-3. 使用 Zustand store 获取/更新状态
-4. 如需后端交互，通过 `invoke()` 调用 Tauri command
-
-### 调试
-
-- 前端：`npm run tauri dev` 后按 F12 打开 DevTools
-- 后端日志：`RUST_LOG=debug npm run tauri dev`
-- 数据库：用 DB Browser for SQLite 打开 `%APPDATA%/Nexthrum/nexthrum_messages.db`
+**不要提交**：`target/`、`apps/windows/src-tauri/target/`、`apps/windows/dist/`、`apps/windows/node_modules/`、`apps/macos/Generated/`、`apps/windows/src-tauri/gen/schemas/`、`.DS_Store`、`*.db`、`.env*`。

@@ -1,166 +1,74 @@
-# Nexthrum - 开发指南
+# Nexthrum 开发指南
 
-## 环境要求
+## 1. 项目现状与目标
 
-### 必需安装
+Windows 当前由 React/TypeScript + Tauri 2/Rust 构成；新增目标是 SwiftUI 原生 macOS 客户端，并逐步抽取无 UI/平台依赖的 Rust Core。开始开发前查看 `devlog/` 最新记录及 `docs/requirements.md`、`docs/architecture.md`、`docs/tech-spec.md`、`docs/design-spec.md`。
 
-| 工具 | 版本 | 说明 |
-|------|------|------|
-| Node.js | 20.x LTS | JavaScript 运行时 |
-| Rust | stable (1.75+) | 通过 [rustup](https://rustup.rs/) 安装 |
-| Microsoft Visual Studio Build Tools | 2022 | C++ 编译工具链（Windows 必需） |
-| WebView2 | 预装 | Windows 10 1809+ / Windows 11 预装 |
+目标架构与现状的差异见 `docs/refactor-plan.md`。不要假设目标目录、FFI 或 macOS 功能已经落地。
 
-### 推荐安装
+## 2. 仓库导航
 
-| 工具 | 用途 |
-|------|------|
-| VS Code + Tauri Extension | IDE |
-| Git | 版本管理 |
-
----
-
-## 快速开始
-
-### 1. 克隆并安装依赖
-
-```bash
-cd Nexthrum
-npm install
+```text
+apps/windows/src/         Windows React UI
+apps/windows/src-tauri/   Windows Tauri/Rust host adapter
+apps/macos/               目标：SwiftUI app（建立后使用）
+crates/                   目标：Rust Core/Gotify/Storage 等（渐进抽取）
+docs/                     需求、架构、技术、设计和迁移方案
+devlog/                   每日进展
+.github/workflows/        CI 与发行
 ```
 
-### 2. 开发模式
+## 3. 开发环境
 
-```bash
-npm run tauri dev
-```
+### Windows 当前应用
+- Node.js 20 LTS、Rust stable、Visual Studio C++ Build Tools、WebView2。
+- 安装依赖：`npm --prefix apps/windows ci`。
+- 开发运行：`npm --prefix apps/windows run tauri dev`。
+- 前端检查：`npm --prefix apps/windows run typecheck`；前端构建：`npm --prefix apps/windows run build`。
+- 后端检查（从 workspace 根执行）：`cargo check --workspace`；完整门槛见第 5 节。
 
-这会同时启动：
-- Vite 开发服务器（前端热更新，端口 1420）
-- Tauri 应用窗口（Rust 后端 + WebView）
+- 应用图标：母版为仓库根目录 `Nexthrum.png`（正方形，≥1024px），运行 `scripts/generate-icons.sh` 一次性重生成 Windows `apps/windows/src-tauri/icons/*` 与 `apps/macos/AppIcon.icns`；Xcode 通过 `CFBundleIconFile` 引用该 icns。
+- 图标留白由 `scripts/icon_normalize.py` 归一：先按 alpha 裁剪母版透明边，再按平台重新留白（Windows 应用 92%、托盘 94%、macOS 80.5%）。**不要**把母版直接喂给 `tauri icon`，否则会叠加母版本身的留白。
 
-### 3. 生产构建
+### macOS 应用
+- Apple Silicon（arm64）、macOS 14.0+、Xcode 及 Rust stable。
+- 生成 Swift bindings：`scripts/generate-swift-bindings.sh`（需要 Rust；可选安装 `swiftformat` 进行格式化）。输出到 `apps/macos/Generated/`，生成 `.swift`、FFI header 和 modulemap。
+- 构建并校验 app：`scripts/build-macos-xcode.sh`（校验 arm64、内嵌 dylib、`@rpath`、Info.plist）。
+- 单元测试：`xcodebuild -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test`。
+- SwiftUI 通过稳定 Rust bridge 使用业务接口，不得绕过 Core 操作 SQLite。当前未配置正式签名与公证。
 
-```bash
-npm run tauri build
-```
+## 4. 代码边界
 
-构建产物位于 `src-tauri/target/release/bundle/`：
-- `msi/` / `nsis/` - Windows 安装包
-- 可执行文件在 `src-tauri/target/release/nexthrum.exe`
+- 领域规则放 Rust Core，不放 React command handler、Swift View 或平台通知回调。
+- Gotify 网络客户端不直接依赖 Tauri、SwiftUI 或系统通知。
+- SQLite 通过 repository 访问，schema 变更必须有 migration 和兼容测试。
+- 平台能力由 Windows/macOS adapter 实现；Core 通过事件/接口与宿主交互。
+- DTO/API 变更同步更新架构文档和两端映射测试。
+- UI 状态是缓存，持久化与业务状态以 Core 为准；操作失败不得乐观地永久改写状态。
 
-### 4. 仅构建前端（调试用）
+## 5. 测试与检查
 
-```bash
-npm run build
-```
+每次改动至少运行与改动范围相关的检查；功能完成前运行完整可用检查：
 
-前端构建产物位于 `dist/`。
+- Rust（workspace 根）：`cargo fmt --all --check`、`cargo test --workspace`、`cargo clippy --workspace --all-targets -- -D warnings`。
+- CI：`.github/workflows/ci.yml` 在 Windows 与 macOS arm64 上执行上述检查及 TypeScript、UniFFI 生成、Xcode build/XCTest；本地提交前应至少跑通 Rust 与 TypeScript 部分。
+- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows run build`。
+- SQLite：临时数据库测试、迁移升级/回滚及旧用户数据兼容测试。
+- Core：DND 跨午夜、重复消息、读状态、清理、连接状态和设置更新测试。
+- macOS：Swift 编译及 XCTest；原生通知、菜单栏、启动项需在 macOS 环境集成验证。
+- 跨平台发布前验证 Windows 与 macOS 构建，不以单平台成功代替。
 
----
+## 6. 安全与数据变更
 
-## 开发工作流
+- 日志禁止输出 token、带 token 的 URL 或敏感消息内容。
+- 服务器同步删除与本地删除分开实现，检查 HTTP 状态并向用户反馈。
+- 更改数据目录、数据库文件名或设置格式前，审计既有安装实际路径，编写幂等迁移和备份/恢复策略。
+- 新增设置要定义默认值、兼容缺省配置、平台映射和 UI 文案；凭据优先使用系统凭据存储。
 
-### 目录导航
+## 7. 文档与开发日志
 
-```
-项目根目录
-├── src/              ← 前端开发主要在这里
-├── src-tauri/src/    ← Rust 后端开发在这里
-├── docs/             ← 项目文档（需求/设计/技术/架构）
-└── devlog/           ← 每日开发日志
-```
+涉及需求、API、数据结构、平台行为或安装要求时，先更新对应标准文档，再实现。新增/修改 Tauri command 或 Core bridge 时更新 `docs/architecture.md` 的接口协议。完成后在当日 `devlog/YYYY-MM-DD.md` 记录完成事项、验证结果和遗留问题。
 
-### 日常开发步骤
+## 8. Git 提交
 
-1. **查看 devlog**：`devlog/` 文件夹，按 `YYYY-MM-DD.md` 命名，记录每日完成事项和 TODO
-2. **修改前端**：编辑 `src/` 下的 `.tsx` / `.ts` / `.css` 文件，Vite 自动热更新
-3. **修改后端**：编辑 `src-tauri/src/` 下的 `.rs` 文件，`cargo check` 检查编译
-4. **添加新依赖（前端）**：`npm install <package>`
-5. **添加新依赖（Rust）**：编辑 `src-tauri/Cargo.toml`，然后 `cargo update`
-6. **提交代码**：遵循 [Git 提交规范](#git-提交规范)
-
-### 调试技巧
-
-- **前端调试**：`npm run tauri dev` 后，在 Tauri 窗口中按 `F12` 打开 DevTools
-- **后端日志**：Rust 端使用 `log` crate，日志输出到终端
-- **数据库检查**：SQLite 数据库位于 `%APPDATA%/Nexthrum/gotify_messages.db`，可用 [DB Browser for SQLite](https://sqlitebrowser.org/) 打开查看
-
----
-
-## 代码规范
-
-### TypeScript
-
-- 使用 `const` 和箭头函数
-- 接口命名：`I` 前缀或描述性名称（如 `AppSettings`, `GotifyMessage`）
-- 组件命名：PascalCase（如 `MessageWindow`, `AppFilter`）
-- 文件命名：与默认导出组件同名
-
-### Rust
-
-- 遵循 `rustfmt` 默认格式
-- 使用 `#[derive(Debug, Clone, Serialize, Deserialize)]` 标记数据结构
-- 错误处理：Command 返回 `Result<T, String>`，内部函数可返回具体错误类型
-- 使用 `log::info! / warn! / error!` 分级日志
-
-### CSS / Tailwind
-
-- 自定义颜色通过 CSS 变量定义在 `src/styles/index.css`
-- 优先使用 Tailwind 工具类，仅在必要时自定义 CSS
-- 使用 `transition-colors` 做悬停过渡
-
-### 文件组织
-
-- 一个组件一个文件
-- 紧耦合的子组件放在同一目录下（如 `MessageWindow/` 目录含多个子组件）
-- 共享的类型定义放在 `types/`
-- 工具函数放在 `utils/`
-
----
-
-## Git 提交规范
-
-```
-<type>(<scope>): <subject>
-
-<body>
-```
-
-**Type**：
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档变更
-- `style`: 代码格式（不影响功能）
-- `refactor`: 重构
-- `perf`: 性能优化
-- `test`: 测试
-- `chore`: 构建/工具变更
-
-**示例**：
-```
-feat(websocket): add auto-reconnect on connection loss
-
-Automatically attempt to reconnect every 5 seconds when the
-WebSocket connection drops.
-```
-
----
-
-## GitHub Actions CI/CD
-
-工作流文件：`.github/workflows/build.yml`
-
-**触发条件**：
-- Push 到 `main` / `master` 分支
-- 推送 `v*` 标签
-- Pull Request 到主分支
-- 手动触发（`workflow_dispatch`）
-
-**构建矩阵**：
-- `windows-latest` / `x86_64-pc-windows-msvc`
-
-**产物**：
-- NSIS 安装包 (.exe)
-- 便携版 (.zip)
-- 自动创建 GitHub Release（推送 tag 时）
+格式：`<type>(<scope>): <subject>`。常见 type：`feat`、`fix`、`docs`、`refactor`、`test`、`chore`。提交说明准确区分已经实现与规划中的工作。

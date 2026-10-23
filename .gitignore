@@ -3,7 +3,16 @@ node_modules/
 
 # Build output
 dist/
-src-tauri/target/
+/target/
+apps/windows/src-tauri/target/
+
+# Xcode / Swift build output
+apps/macos/Generated/
+**/xcuserdata/
+*.xcresult
+
+# Tauri generated capability schemas
+apps/windows/src-tauri/gen/schemas/
 
 # IDE
 .vscode/
