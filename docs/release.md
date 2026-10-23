@@ -54,7 +54,13 @@
 ```bash
 scripts/create-local-signing-identity.sh        # 一次性创建，私钥备份在 ~/.tauri/nexthrum-signing
 scripts/package-macos-dmg.sh                    # 自动使用 "Nexthrum Local Signing" 签名
+
+# 发布流水线里显式要求签名（默认不签名，便于本地快速构建）
+CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="Nexthrum Local Signing" \
+  scripts/build-macos-xcode.sh
 ```
+
+发布流的 `generate_appcast` 用 `--ed-key-file` 直接读私钥文件，**不导入钥匙串**（runner 上导入会触发无法应答的授权弹窗）。
 
 - 签名稳定 → designated requirement 不变 → Keychain「始终允许」与通知/登录项授权不再反复重置
 - CI 通过 `MACOS_SIGNING_CERT_P12` / `MACOS_SIGNING_CERT_PASSWORD` 两个 secret 导入同一身份

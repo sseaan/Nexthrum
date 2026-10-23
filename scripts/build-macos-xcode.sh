@@ -13,18 +13,29 @@ fi
 SDK_PATH="$(xcrun --sdk macosx --show-sdk-path)"
 OUT="${DERIVED_DATA_PATH:-$ROOT/target/xcode-derived}"
 
+# Signing is opt-in: local builds stay unsigned for speed, while the release job
+# exports CODE_SIGNING_ALLOWED=YES and CODE_SIGN_IDENTITY=<identity> so that
+# Sparkle can verify the app and sign the appcast.
+SIGN_ARGS=(CODE_SIGNING_ALLOWED="${CODE_SIGNING_ALLOWED:-NO}")
+if [[ -n "${CODE_SIGN_IDENTITY:-}" ]]; then
+  SIGN_ARGS+=("CODE_SIGN_IDENTITY=$CODE_SIGN_IDENTITY")
+fi
+if [[ -n "${CODE_SIGN_STYLE:-}" ]]; then
+  SIGN_ARGS+=("CODE_SIGN_STYLE=$CODE_SIGN_STYLE")
+fi
+
 xcodebuild \
   -project apps/macos/Nexthrum.xcodeproj \
   -scheme Nexthrum \
-  -configuration Debug \
+  -configuration "${CONFIGURATION:-Debug}" \
   -sdk macosx \
   -derivedDataPath "$OUT" \
-  CODE_SIGNING_ALLOWED=NO \
+  "${SIGN_ARGS[@]}" \
   ALWAYS_SEARCH_USER_PATHS=NO \
   SDKROOT="$SDK_PATH" \
   build
 
-APP="$OUT/Build/Products/Debug/Nexthrum.app"
+APP="$OUT/Build/Products/${CONFIGURATION:-Debug}/Nexthrum.app"
 EXECUTABLE="$APP/Contents/MacOS/Nexthrum"
 EMBEDDED_FFI="$APP/Contents/Frameworks/libnexthrum_ffi.dylib"
 

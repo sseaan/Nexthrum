@@ -52,24 +52,51 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "${{ github.ref_name }}"
           releaseBody: |
-            ## 安装说明 / Installation
+            ## Nexthrum 2.0.0
 
-            ### Windows
+            首个跨平台版本：Windows 与 macOS 共用一套 Rust 内核。
+            First cross-platform release: one shared Rust core behind both native clients.
 
-            | 文件 / File | 说明 / Description |
-            |------|------|
-            | `Nexthrum_*_x64-setup.exe` | NSIS 安装包 / NSIS installer |
-            | `Nexthrum_portable.zip` | 便携版，解压即用 / Portable, extract and run |
+            ### 下载 / Downloads
+
+            | 平台 / Platform | 文件 / File | 说明 / Notes |
+            |---|---|---|
+            | Windows | `Nexthrum_2.0.0_x64-setup.exe` | NSIS 安装包，按当前用户安装 / per-user installer |
+            | Windows | `Nexthrum_portable.zip` | 便携版，解压即用 / portable, extract and run |
+            | macOS (arm64) | `Nexthrum-2.0.0-arm64.dmg` | 拖入 Applications 即可 / drag to Applications |
+            | 自动更新 / Updates | `latest.json` · `appcast.xml` | 由应用自动使用 / consumed by the apps |
 
             ### 系统要求 / Requirements
-            - Windows 10 1809+ / Windows 11
-            - WebView2 (pre-installed on Win11)
+            - Windows 10 1809+ / Windows 11（WebView2，Win11 已内置 / built into Win11）
+            - macOS 14+，Apple Silicon（arm64）
 
-            ### 使用步骤 / Quick Start
-            1. 安装或解压后运行 / Install or extract and run
-            2. 设置中填入 Gotify 服务器地址和令牌 / Enter Gotify server URL & token in Settings
-            3. 点击「测试连接」/ Click "Test Connection"
-            4. 保存设置，开始接收消息 / Save settings, start receiving
+            ### 安装说明 / Installation
+            - **Windows**：安装包未做 Authenticode 签名，首次运行会提示 SmartScreen，选择「更多信息 → 仍要运行」。
+              Unsigned installer: choose "More info → Run anyway" on first launch.
+            - **macOS**：未做公证，首次打开需右键 → 打开，或执行
+              `xattr -dr com.apple.quarantine /Applications/Nexthrum.app`。
+              由 Sparkle 安装的更新不带隔离标记，后续升级不会再提示。
+              Not notarized: right-click → Open the first time; Sparkle updates are not quarantined.
+            - 从 2.0 早期构建升级：请先删除旧的 `NexthrumMac.app`（bundle id 与数据不变）。
+
+            ### 快速开始 / Quick Start
+            1. 启动 Nexthrum：窗口打开，托盘 / 菜单栏出现图标。
+            2. 在设置中填入 Gotify 服务器地址与客户端令牌（Gotify 网页端 → Clients）。
+            3. 点击「测试连接」，然后保存；消息会实时出现在列表并触发系统通知。
+            4. 首次运行有引导页，可跳过并稍后配置。
+              First launch shows a short onboarding guide; it can be skipped.
+
+            ### 本版要点 / Highlights
+            - 共享 Rust 内核（Core 用例、Gotify 客户端、SQLite、UniFFI 桥接）
+            - 卡片式消息列表、搜索、来源筛选、托盘未读红点、菜单栏面板
+            - 凭据存于 Windows 凭据管理器 / macOS 钥匙串，不写入设置 JSON
+            - 自动更新：Windows 走 `latest.json`，macOS 走 Sparkle `appcast.xml`
+            - 中英双语界面（Windows 可切换，macOS 跟随系统）
+            - 许可：AGPL-3.0
+
+            ### 已知限制 / Known limitations
+            - Windows 无 Authenticode 签名；macOS 无 Developer ID 与公证（首次安装提示无法避免）。
+            - macOS 通知、登录项与退出清理仍需实机验收记录。
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.target }}
@@ -172,15 +199,27 @@ jobs:
             "dist/Nexthrum-${VERSION}.zip"
 
       - name: Sign appcast
-        run: |
-          # Import the EdDSA key into the temporary keychain so generate_appcast
-          # can sign the enclosure.
-          echo "$SPARKLE_EDDSA_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle.key"
-          "$SPARKLE_BIN/generate_keys" -f "$RUNNER_TEMP/sparkle.key"
-          "$SPARKLE_BIN/generate_appcast" dist \
-            --download-url-prefix "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/"
+        timeout-minutes: 10
         env:
           SPARKLE_EDDSA_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+        run: |
+          # Pass the key as a file: importing it into the keychain triggers an
+          # Authorization prompt that hangs on a runner.
+          echo "$SPARKLE_EDDSA_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle.key"
+          "$SPARKLE_BIN/generate_appcast" dist \
+            --ed-key-file "$RUNNER_TEMP/sparkle.key" \
+            --download-url-prefix "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/"
+
+      - name: Verify appcast signature
+        timeout-minutes: 5
+        env:
+          SPARKLE_EDDSA_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+        run: |
+          URL=$(python3 -c "import re,sys;print(re.search(r'url=\"([^\"]+)\"', open('dist/appcast.xml').read()).group(1))")
+          SIGNATURE=$(python3 -c "import re;print(re.search(r'edSignature=\"([^\"]+)\"', open('dist/appcast.xml').read()).group(1))")
+          echo "enclosure: $URL"
+          echo "signature: $SIGNATURE"
+          test -n "$URL" && test -n "$SIGNATURE"
 
       - name: Upload macOS update to the release
         uses: softprops/action-gh-release@v2
