@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "apps/windows/src-tauri",
+    "crates/nexthrum-core",
+    "crates/nexthrum-gotify",
+    "crates/nexthrum-storage",
+    "crates/nexthrum-ffi",
+    "tools/uniffi-bindgen",
+]
+resolver = "2"
