@@ -23,6 +23,7 @@ devlog/                   每日进展
 - Node.js 20 LTS、Rust stable、Visual Studio C++ Build Tools、WebView2。
 - 安装依赖：`npm --prefix apps/windows ci`。
 - 开发运行：`npm --prefix apps/windows run tauri dev`。
+- 真机测试清单（窗口按钮、DPI、主题、设置入口、安装包验收）：见 `docs/windows-testing.md`；UI 改造规划与进度见 `docs/windows-ui-redesign-plan.md`。
 - 前端检查：`npm --prefix apps/windows run typecheck`；前端构建：`npm --prefix apps/windows run build`。
 - 后端检查（从 workspace 根执行）：`cargo check --workspace`；完整门槛见第 5 节。
 
