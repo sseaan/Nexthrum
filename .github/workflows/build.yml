@@ -38,6 +38,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install frontend dependencies
+        working-directory: apps/windows
         run: npm ci
 
       - name: Build Tauri app
@@ -45,6 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: apps/windows
           tagName: ${{ github.ref_name }}
           releaseName: "${{ github.ref_name }}"
           releaseBody: |
@@ -74,14 +76,15 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
-          exe="src-tauri/target/${{ matrix.target }}/release/nexthrum.exe"
+          # The Cargo workspace publishes artifacts to the repository root target/.
+          exe="target/${{ matrix.target }}/release/nexthrum.exe"
           if [ -f "$exe" ]; then
             cp "$exe" Nexthrum.exe
             7z a "Nexthrum_portable.zip" Nexthrum.exe
             echo "Portable zip created successfully"
           else
             echo "ERROR: Release exe not found at $exe"
-            ls -la src-tauri/target/${{ matrix.target }}/release/ 2>/dev/null || true
+            ls -la "target/${{ matrix.target }}/release/" 2>/dev/null || true
             exit 1
           fi
 

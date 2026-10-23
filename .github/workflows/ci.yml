@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    name: Windows / Rust + TypeScript
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Rust tests
+        run: cargo test --workspace
+
+      # Windows-only credential code cannot be linted from the macOS dev
+      # environment, so warnings are reported instead of failing the build.
+      - name: Rust lints
+        run: cargo clippy --workspace --all-targets
+
+      - name: Version consistency
+        shell: bash
+        run: |
+          node -e '
+            const fs = require("fs");
+            const pkg = require("./apps/windows/package.json").version;
+            const tauri = require("./apps/windows/src-tauri/tauri.conf.json").version;
+            const cargo = fs.readFileSync("apps/windows/src-tauri/Cargo.toml", "utf8").match(/^version = "(.*)"/m)[1];
+            const plist = fs.readFileSync("apps/macos/Info.plist", "utf8").match(/CFBundleShortVersionString<\/key>\s*<string>(.*?)<\/string>/)[1];
+            console.log(`package.json=${pkg} tauri.conf.json=${tauri} Cargo.toml=${cargo} Info.plist=${plist}`);
+            if (new Set([pkg, tauri, cargo, plist]).size !== 1) {
+              console.error("Version mismatch across platforms; keep all four in sync.");
+              process.exit(1);
+            }
+            console.log(`Version ${pkg}`);
+          '
+
+      - name: Frontend dependencies
+        working-directory: apps/windows
+        run: npm ci
+
+      - name: TypeScript types
+        working-directory: apps/windows
+        run: npm run typecheck
+
+  macos:
+    name: macOS arm64 / Rust + SwiftUI
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Rust tests
+        run: cargo test --workspace
+
+      - name: Rust lints
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Generate UniFFI Swift bindings
+        run: scripts/generate-swift-bindings.sh
+
+      - name: Swift bindings compile
+        run: |
+          swiftc -parse \
+            apps/macos/Generated/nexthrum_ffi.swift \
+            apps/macos/AppModel.swift
+
+      - name: Xcode app build
+        run: scripts/build-macos-xcode.sh
+
+      - name: Xcode unit tests
+        run: |
+          xcodebuild \
+            -project apps/macos/NexthrumMac.xcodeproj \
+            -scheme NexthrumMac \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath target/xcode-tests \
+            CODE_SIGNING_ALLOWED=NO \
+            test
