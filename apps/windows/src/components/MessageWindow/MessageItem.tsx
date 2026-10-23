@@ -89,16 +89,18 @@ export function MessageItem({ message }: MessageItemProps) {
       <div
         onClick={handleClick}
         onContextMenu={handleContextMenu}
-        className={`group relative pl-4 pr-4 py-3 border-b border-[var(--color-border)] cursor-pointer transition-colors hover:bg-[var(--color-surface-hover)] ${
-          isUnread ? "bg-[var(--color-surface)]" : "bg-[var(--color-bg)]"
-        }`}
+        className={`group relative rounded-[10px] border pl-3 pr-3 py-2.5 cursor-pointer transition-all duration-150 ${
+          isUnread
+            ? "border-[var(--color-primary)]/35 bg-[var(--color-primary)]/8 hover:bg-[var(--color-primary)]/12"
+            : "border-[var(--color-border)] bg-[var(--color-surface)]/60 hover:bg-[var(--color-surface-hover)]"
+        } hover:shadow-lg hover:shadow-black/20`}
         aria-label={`${isUnread ? t.message.unread : t.message.read}: ${
           message.title || t.message.noTitle
         }, ${formatFullDate(message.date)}`}
       >
         {/* Unread accent bar (cue 1 of 3) */}
         <span
-          className={`absolute left-0 top-0 bottom-0 w-[3px] ${
+          className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${
             isUnread ? "bg-[var(--color-primary)]" : "bg-transparent"
           }`}
           aria-hidden="true"

@@ -25,10 +25,12 @@ export function MessageList() {
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      {filteredMessages.map((msg) => (
-        <MessageItem key={msg.id} message={msg} />
-      ))}
+    <div className="h-full overflow-y-auto px-4 py-3">
+      <div className="flex flex-col gap-2">
+        {filteredMessages.map((msg) => (
+          <MessageItem key={msg.id} message={msg} />
+        ))}
+      </div>
     </div>
   );
 }

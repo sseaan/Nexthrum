@@ -1,12 +1,6 @@
 const zh = {
   app: { title: "Nexthrum" },
 
-  toolbar: {
-    clearAll: "清空全部",
-    settings: "⚙ 设置",
-    unread: "{n} 条未读",
-  },
-
   filter: {
     label: "按来源筛选",
     allApps: "全部应用",
@@ -26,6 +20,37 @@ const zh = {
     messageList: "消息列表",
     settings: "设置",
     exit: "退出",
+  },
+
+  header: {
+    title: "消息",
+    unread: "{n} 条未读",
+    cached: "已缓存 {n} 条",
+    reconnect: "重新连接",
+    settings: "设置",
+    clearAll: "全部清空…"
+  },
+
+  onboarding: {
+    welcome: "欢迎使用 Nexthrum",
+    intro: "连接你的 Gotify 服务器后即可在此接收消息，只需一分钟。",
+    step1Title: "服务器地址",
+    step1Detail: "填写你在浏览器中打开的地址，例如 https://gotify.example.com",
+    step2Title: "客户端令牌",
+    step2Detail: "在 Gotify 网页端打开 Clients，创建或复制一个客户端令牌，然后粘贴到下方。",
+    step3Title: "先测试，再保存",
+    step3Detail: "建议先测试连接；保存后令牌会存入 Windows 凭据管理器。",
+    serverUrl: "服务器地址",
+    serverUrlPlaceholder: "https://gotify.example.com",
+    clientToken: "客户端令牌",
+    tokenPlaceholder: "粘贴你的客户端令牌",
+    showToken: "粘贴客户端令牌…",
+    test: "测试连接",
+    testing: "测试中…",
+    save: "保存并连接",
+    skip: "暂时跳过",
+    advanced: "高级设置…",
+    missing: "请先填写服务器地址与客户端令牌。"
   },
 
   settings: {

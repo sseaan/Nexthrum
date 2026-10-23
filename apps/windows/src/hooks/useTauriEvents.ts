@@ -15,6 +15,7 @@ export function useTauriEvents() {
   const setUnreadCount = useAppStore((s) => s.setUnreadCount);
   const setCurrentView = useAppStore((s) => s.setCurrentView);
   const setConnectionState = useAppStore((s) => s.setConnectionState);
+  const setConnectionError = useAppStore((s) => s.setConnectionError);
 
   useEffect(() => {
     let active = true;
@@ -42,6 +43,7 @@ export function useTauriEvents() {
             setConnectionState(state);
           }
         }),
+        listen<string>("connection-error", (event) => setConnectionError(event.payload)),
         listen<void>("show-settings", () => setCurrentView("settings")),
         listen<number>("notification-clicked", () => {}),
       ]);
@@ -59,7 +61,7 @@ export function useTauriEvents() {
       active = false;
       unlisteners.forEach((unlisten) => unlisten());
     };
-  }, [addMessage, setUnreadCount, setCurrentView, setConnectionState]);
+  }, [addMessage, setUnreadCount, setCurrentView, setConnectionState, setConnectionError]);
 
   return ready;
 }

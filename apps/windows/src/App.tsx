@@ -13,6 +13,7 @@ function App() {
   const setMessages = useAppStore((s) => s.setMessages);
   const setUnreadCount = useAppStore((s) => s.setUnreadCount);
   const setAppNames = useAppStore((s) => s.setAppNames);
+  const setSettingsLoaded = useAppStore((s) => s.setSettingsLoaded);
 
   const listenersReady = useTauriEvents();
 
@@ -42,6 +43,7 @@ function App() {
         ]);
         if (!active) return;
         setSettings(settings as Parameters<typeof setSettings>[0]);
+        setSettingsLoaded(true);
         // Merge over events received while the snapshot request was in flight.
         const currentMessages = useAppStore.getState().messages;
         const currentIds = new Set(currentMessages.map((message) => message.id));
@@ -62,7 +64,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [listenersReady, setSettings, setMessages, setUnreadCount, setAppNames]);
+  }, [listenersReady, setSettings, setMessages, setUnreadCount, setAppNames, setSettingsLoaded]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

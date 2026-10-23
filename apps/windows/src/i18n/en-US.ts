@@ -1,12 +1,6 @@
 const en = {
   app: { title: "Nexthrum" },
 
-  toolbar: {
-    clearAll: "Clear All",
-    settings: "⚙ Settings",
-    unread: "{n} unread",
-  },
-
   filter: {
     label: "Filter by source",
     allApps: "All Apps",
@@ -27,6 +21,37 @@ const en = {
     messageList: "Message List",
     settings: "Settings",
     exit: "Exit",
+  },
+
+  header: {
+    title: "Messages",
+    unread: "{n} unread",
+    cached: "{n} cached",
+    reconnect: "Reconnect",
+    settings: "Settings",
+    clearAll: "Clear All…"
+  },
+
+  onboarding: {
+    welcome: "Welcome to Nexthrum",
+    intro: "Connect your Gotify server to receive messages here. It only takes a minute.",
+    step1Title: "Server URL",
+    step1Detail: "Use the address you open in a browser, for example https://gotify.example.com",
+    step2Title: "Client token",
+    step2Detail: "In the Gotify web UI open Clients, create or copy a client token, then paste it below.",
+    step3Title: "Test, then save",
+    step3Detail: "Test the connection first; saving stores the token in Windows Credential Manager.",
+    serverUrl: "Server URL",
+    serverUrlPlaceholder: "https://gotify.example.com",
+    clientToken: "Client Token",
+    tokenPlaceholder: "Paste your client token",
+    showToken: "Paste client token…",
+    test: "Test Connection",
+    testing: "Testing…",
+    save: "Save and Connect",
+    skip: "Skip for now",
+    advanced: "Advanced…",
+    missing: "Enter the server URL and client token first."
   },
 
   settings: {

@@ -21,6 +21,9 @@ interface AppStore {
   // Settings
   settings: AppSettings;
   setSettings: (settings: AppSettings) => void;
+  /** False until the persisted settings were read, so the UI can avoid flicker. */
+  settingsLoaded: boolean;
+  setSettingsLoaded: (loaded: boolean) => void;
 
   // Messages
   messages: MessageListItem[];
@@ -38,6 +41,9 @@ interface AppStore {
   setUnreadCount: (count: number) => void;
   connectionState: "disconnected" | "connecting" | "connected";
   setConnectionState: (state: "disconnected" | "connecting" | "connected") => void;
+  /** Last stream failure reported by the Rust client, if any. */
+  connectionError: string | null;
+  setConnectionError: (message: string | null) => void;
 
   // App filters
   apps: { appid: number; appname: string }[];
@@ -62,6 +68,8 @@ const defaultSettings: AppSettings = {
 export const useAppStore = create<AppStore>((set, get) => ({
   settings: defaultSettings,
   setSettings: (settings) => set({ settings }),
+  settingsLoaded: false,
+  setSettingsLoaded: (settingsLoaded) => set({ settingsLoaded }),
 
   messages: [],
   setMessages: (messages) =>
@@ -110,7 +118,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
     backendRevision: state.backendRevision + 1,
   })),
   connectionState: "disconnected",
-  setConnectionState: (connectionState) => set({ connectionState }),
+  setConnectionState: (connectionState) =>
+    set((state) => ({
+      connectionState,
+      // A healthy transition clears the stale failure message.
+      connectionError: connectionState === "connected" ? null : state.connectionError,
+    })),
+  connectionError: null,
+  setConnectionError: (connectionError) => set({ connectionError }),
 
   apps: [],
   appNames: {},
