@@ -79,7 +79,7 @@ macOS 保留 `KeychainCredentialStore` 与 `CredentialSettingsTransaction` 的�
 
 macOS 使用 **Sparkle 2**（内嵌 framework）：`Info.plist` 的 `SUFeedURL` 指向 Release 的 `appcast.xml`，更新包以 EdDSA 签名校验；`CFBundleVersion` 单调递增用于版本比较。应用无 Apple 证书时以稳定的自签名身份签名，保证 Sparkle 身份校验与钥匙串 ACL 稳定；Gatekeeper 首次安装提示仍然存在，但不影响自动更新。
 
-Windows 通过 `tauri-plugin-updater` 检查 GitHub Releases 上的 `latest.json`，更新包以 minisign 签名并在客户端校验（与 Authenticode 无关）；前端 `useUpdater` 把检查/下载/重启建模为显式状态机（`utils/updateState`），失败静默降级。
+Windows 通过 `tauri-plugin-updater`（`tauri-plugin-process` 负责重启）检查 GitHub Releases 上的 `latest.json`，更新包以 minisign 签名并在客户端校验（与 Authenticode 无关）；前端 `useUpdater` 把检查/下载/重启建模为显式状态机（`utils/updateState`），失败静默降级。
 
 消息搜索由 Core 用例 `message_service::search_messages` 承担：repository port 新增 `search(query)`，SQLite 用 `instr(lower(...))` 做子串匹配（避免 `LIKE` 通配符转义问题）并在同一只读事务中读取全局未读数；Windows 暴露 `search_messages` command，macOS 通过 `BridgeService.searchMessages(query:)` 调用。
 

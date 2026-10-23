@@ -23,7 +23,8 @@
 | 文件 | 说明 |
 |---|---|
 | `Nexthrum_<version>_x64-setup.exe` | NSIS 安装包（`installMode: currentUser`，无需管理员） |
-| `Nexthrum_<version>_x64-portable.zip` | 便携版 |
+| `Nexthrum_<version>_x64-portable.zip` | 便携版（与安装包同名规则） |
+| `latest.json` | `tauri-action` 生成的更新清单，签名内嵌 |
 
 **流程**
 
@@ -31,7 +32,8 @@
 2. 本地验证：`npm --prefix apps/windows run build` 与 `cargo test --workspace`。
 3. 打标签推送：`git tag vX.Y.Z && git push origin vX.Y.Z`。
 4. `.github/workflows/build.yml` 在 `windows-latest` 上调用 `tauri-action`（`projectPath: apps/windows`）构建并创建 Release。
-5. portable zip 步骤从 workspace 根 `target/<triple>/release/nexthrum.exe` 取二进制。
+5. portable zip 步骤从 workspace 根 `target/<triple>/release/nexthrum.exe` 取二进制，命名为 `Nexthrum_<version>_x64-portable.zip`。
+6. 上传完成后删除独立的 `*.sig` 资产：更新器从 `latest.json` 读取签名，单独的 `.sig` 文件对用户无意义。
 
 **代码签名：未配置（维护者无证书，暂不计划）**
 
@@ -73,6 +75,7 @@ CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="Nexthrum Local Signing" \
 - `CFBundleVersion` 必须单调递增（当前 `2000`，每次发布递增）
 - 更新包由 `generate_appcast` 用 EdDSA 私钥签名，客户端校验后才安装；私钥在登录钥匙串，导出备份为 `~/.tauri/sparkle-ed25519.key`，CI 用 `SPARKLE_EDDSA_PRIVATE_KEY`
 - 本地已验证完整链路：appcast → 下载 → `EdDSA signature is correct for update` → 版本由 2000 升到 2001
+- Release 产物：`Nexthrum-<version>-arm64.dmg`（人工安装，拖入 Applications）与 `Nexthrum-<version>.zip`（Sparkle 使用的应用包），清单为 `appcast.xml`
 
 **从 `NexthrumMac.app` 迁移**：2.0 早期构建的 bundle 名为 `NexthrumMac.app`，现在统一为 `Nexthrum.app`。升级时先手动删除旧的 `NexthrumMac.app`，否则 `/Applications` 里会同时存在两份；`~/Library/Application Support/Nexthrum`、Keychain 条目与 bundle id（`com.nexthrum.app`）都不变，设置与凭据会沿用。
 
@@ -120,17 +123,20 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 - [ ] Windows：凭证保存在 Windows Credential Manager，`settings.json` 不含 token
 - [ ] macOS：`scripts/build-macos-xcode.sh` 通过（arm64、`@rpath`、plist、AppIcon 已入包）
 - [ ] macOS：`xcodebuild test` 全部通过（Keychain 用例默认 skip，需要时用编译开关单独跑）
-- [ ] macOS：`scripts/package-macos-dmg.sh` 产出 DMG，`codesign -dv` 显示 adhoc
+- [ ] macOS：`scripts/package-macos-dmg.sh` 产出 DMG，`codesign -dv` 显示 `Authority=Nexthrum Local Signing`
 - [ ] macOS 实机：通知授权/拒绝、点击通知跳转、Launch at login 系统审批、退出清理连接
-- [ ] macOS：`NEXTHRUM_KEYCHAIN_TESTS=1` 下 Keychain 集成测试通过（见 `apps/macos/Tests/KeychainCredentialStoreTests.swift`）
+- [ ] macOS：Keychain 集成测试通过（`SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) NEXTHRUM_KEYCHAIN_TESTS'`，见 `apps/macos/Tests/KeychainCredentialStoreTests.swift`）
+- [ ] Release 资产齐全：`Nexthrum_<v>_x64-setup.exe`、`Nexthrum_<v>_x64-portable.zip`、`Nexthrum-<v>-arm64.dmg`、`Nexthrum-<v>.zip`、`latest.json`、`appcast.xml`，且没有 `*.sig`
+- [ ] `latest.json` 含 `windows-x86_64` / `windows-x86_64-nsis` 条目与签名；`appcast.xml` 含 `sparkle:version` 与 `edSignature`
 - [ ] 发布说明包含未签名/未公证提示与系统要求
 
 ## 6. 相关文件
 
 - `.github/workflows/ci.yml`：每次推送的双平台检查
-- `.github/workflows/build.yml`：标签触发的 Windows 发布
+- `.github/workflows/build.yml`：标签触发的双平台发布（Windows 包 + macOS DMG/zip/appcast）
 - `apps/windows/src-tauri/tauri.conf.json`：bundle 与安装器配置
-- `apps/macos/Nexthrum.xcconfig`：macOS 架构、部署目标与签名开关
+- `apps/macos/Nexthrum.xcconfig`：macOS 架构、部署目标与默认签名开关
+- `apps/macos/Vendor/Sparkle.framework`：macOS 自动更新框架
 - `scripts/build-macos-xcode.sh`：本地构建与产物校验
 - `scripts/package-macos-dmg.sh`：稳定自签身份签名 + DMG 打包
 - `apps/macos/Vendor/Sparkle.framework`：macOS 自动更新框架（2.10.0）

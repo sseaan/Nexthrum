@@ -83,9 +83,10 @@ Core 提供用例和类型化事件；不依赖 Tauri、Swift、React、平台�
 - 验证断线恢复、休眠恢复、关闭窗口后台运行、权限拒绝及数据升级。
 - 再补齐筛选、标读、删除、清空、DND、保留期、启动项和本地化。
 
-### 阶段 5：发布治理（进行中）
+### 阶段 5：发布治理（双平台发布与自动更新已完成；Apple 公证与 Windows Authenticode 待证书）
 - Windows/macOS 分别构建与集成测试；Rust Core 在双平台 target 验证。
 - 配置 Apple 签名、公证、DMG/ZIP；明确更新与版本策略。
+- 现状：2.0.0 已发布 Windows 安装包/便携包与 macOS DMG/zip，双平台自动更新通道（`latest.json` / `appcast.xml`）已上线；macOS 使用稳定自签身份，公证与 Authenticode 仍缺证书。
 - 确保 Windows 既有数据和配置兼容。
 
 ## 6. 方案比较

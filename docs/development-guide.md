@@ -1,21 +1,20 @@
 # Nexthrum 开发指南
 
-## 1. 项目现状与目标
+## 1. 项目现状
 
-Windows 当前由 React/TypeScript + Tauri 2/Rust 构成；新增目标是 SwiftUI 原生 macOS 客户端，并逐步抽取无 UI/平台依赖的 Rust Core。开始开发前查看 `devlog/` 最新记录及 `docs/requirements.md`、`docs/architecture.md`、`docs/tech-spec.md`、`docs/design-spec.md`。
-
-目标架构与现状的差异见 `docs/refactor-plan.md`。不要假设目标目录、FFI 或 macOS 功能已经落地。
+两个原生前端已共用同一套 Rust Core：Windows 使用 React/TypeScript + Tauri 2，macOS 使用 SwiftUI + UniFFI。开始开发前查看 `devlog/` 最新记录及 `docs/requirements.md`、`docs/architecture.md`、`docs/tech-spec.md`、`docs/design-spec.md`；发布相关见 `docs/release.md`。
 
 ## 2. 仓库导航
 
 ```text
-apps/windows/src/         Windows React UI
-apps/windows/src-tauri/   Windows Tauri/Rust host adapter
-apps/macos/               目标：SwiftUI app（建立后使用）
-crates/                   目标：Rust Core/Gotify/Storage 等（渐进抽取）
-docs/                     需求、架构、技术、设计和迁移方案
+apps/windows/             Windows React UI + Tauri host adapter（含 src-tauri）
+apps/macos/               SwiftUI 应用、Xcode 工程、XCTest、内嵌 Sparkle
+crates/                   nexthrum-core / gotify / storage / ffi
+scripts/                  bindings、图标、macOS 构建打包、签名身份
+tools/uniffi-bindgen/     本地 Swift bindings 生成器
+docs/                     需求、架构、技术、设计、发布手册
 devlog/                   每日进展
-.github/workflows/        CI 与发行
+.github/workflows/        CI（双平台）与发布（tag 触发）
 ```
 
 ## 3. 开发环境
@@ -35,7 +34,9 @@ devlog/                   每日进展
 - 生成 Swift bindings：`scripts/generate-swift-bindings.sh`（需要 Rust；可选安装 `swiftformat` 进行格式化）。输出到 `apps/macos/Generated/`，生成 `.swift`、FFI header 和 modulemap。
 - 构建并校验 app：`scripts/build-macos-xcode.sh`（校验 arm64、内嵌 dylib、`@rpath`、Info.plist）。
 - 单元测试：`xcodebuild -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test`。
-- SwiftUI 通过稳定 Rust bridge 使用业务接口，不得绕过 Core 操作 SQLite。当前未配置正式签名与公证。
+- 签名：`scripts/create-local-signing-identity.sh` 创建稳定自签身份，`scripts/package-macos-dmg.sh` 用它打包；CI 通过 secrets 导入同一身份。无 Developer ID 与公证（见 `docs/release.md`）。
+- 自动更新：Sparkle 读取 Release 的 `appcast.xml`；`CFBundleVersion` 必须每次发布递增。
+- SwiftUI 通过稳定 Rust bridge 使用业务接口，不得绕过 Core 操作 SQLite。
 
 ## 4. 代码边界
 
@@ -52,10 +53,10 @@ devlog/                   每日进展
 
 - Rust（workspace 根）：`cargo fmt --all --check`、`cargo test --workspace`、`cargo clippy --workspace --all-targets -- -D warnings`。
 - CI：`.github/workflows/ci.yml` 在 Windows 与 macOS arm64 上执行上述检查及 TypeScript、UniFFI 生成、Xcode build/XCTest；本地提交前应至少跑通 Rust 与 TypeScript 部分。
-- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest）、`npm --prefix apps/windows run build`。
+- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest：store 派生、快照竞态、时间格式、更新状态机）、`npm --prefix apps/windows run build`。
 - SQLite：临时数据库测试、迁移升级/回滚及旧用户数据兼容测试。
 - Core：DND 跨午夜、重复消息、读状态、清理、连接状态和设置更新测试。
-- macOS：Swift 编译及 XCTest；原生通知、菜单栏、启动项需在 macOS 环境集成验证。
+- macOS：`scripts/build-macos-xcode.sh`、`xcodebuild ... test`（XCTest：设置策略、凭据事务、错误文案、本地化键一致性、时间格式、来源分组）；原生通知、菜单栏、启动项需在 macOS 环境集成验证。
 - 跨平台发布前验证 Windows 与 macOS 构建，不以单平台成功代替。
 
 ## 6. 安全与数据变更
