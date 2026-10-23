@@ -119,9 +119,10 @@ jobs:
 
       - name: Upload portable to Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: Nexthrum_portable.zip
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" Nexthrum_portable.zip --clobber
 
   macos:
     name: macOS arm64 release
@@ -222,8 +223,13 @@ jobs:
           test -n "$URL" && test -n "$SIGNATURE"
 
       - name: Upload macOS update to the release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/appcast.xml
-            dist/*.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          # The Windows job creates the release; wait for it instead of racing.
+          for _ in $(seq 1 60); do
+            if gh release view "$TAG" >/dev/null 2>&1; then break; fi
+            sleep 5
+          done
+          gh release upload "$TAG" dist/appcast.xml dist/*.zip --clobber
