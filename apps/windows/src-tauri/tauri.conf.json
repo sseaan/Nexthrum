@@ -5,7 +5,7 @@
   "identifier": "com.nexthrum.app",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:1430",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },

@@ -223,46 +223,77 @@ cd apps\windows
 npm run dev
 ```
 
-然后在 Edge/Chrome 打开 `http://localhost:1420`：
+然后在 Edge/Chrome 打开 `http://localhost:1430`：
 
 - 浏览器能正常显示界面 → 前端没问题，问题在 Tauri 窗口或 WebView2（继续看 8.2）
 - 浏览器也空白 → 前端运行时错误，浏览器 Console 会直接给出文件和行号
 
-### 8.2 连接与端口类
+### 8.2 端口与 Hyper-V 占用
 
-`tauri.conf.json` 的 `devUrl` 写死了 `http://localhost:1420`，所以 `vite.config.ts` 用 `strictPort: true`：
-端口被占时 Vite 直接失败，而不是换一个端口——后者会让窗口指向空白页。不要为了“跑起来”把 `strictPort` 改成 `false`。
+`tauri.conf.json` 的 `devUrl` 是 `http://localhost:1430`，`vite.config.ts` 也必须用 `1430` 且保持
+`strictPort: true`：两边不一致或端口被占时，窗口会指向空地址而显示空白。**不要**为了“先跑起来”把
+`strictPort` 改成 `false`——Vite 会悄悄换端口，Tauri 仍加载旧端口。
 
-**先确认是谁占着端口**（只看 `Listen`，`TimeWait` 不阻塞绑定）：
+> 历史上的默认端口是 1420，但 Windows 上 Hyper-V/WinNAT 会动态保留端口段，1420 经常落在保留区间内，
+> 因此改为 1430。
+
+#### 先判断端口被谁占
 
 ```powershell
-Get-NetTCPConnection -LocalPort 1420 -State Listen -ErrorAction SilentlyContinue |
-  ForEach-Object { Get-Process -Id $_.OwningProcess } |
-  Select-Object Id, ProcessName, Path -Unique
+# 1) 端口是否有 LISTEN 监听（TimeWait 不阻塞绑定，不用管）
+Get-NetTCPConnection -LocalPort 1430 -State Listen -ErrorAction SilentlyContinue
+
+# 2) 看是不是 Hyper-V/WinNAT 的保留段
+netsh int ipv4 show excludedportrange protocol=tcp
+netsh int ipv4 show dynamicport tcp
 ```
 
-如果列出的是本项目的 `node.exe`（残留的 `tauri dev` / `npm run dev`），直接结束：
+- 出现在 `excludedportrange` 列表里 → 是系统/Hyper-V 保留，**杀进程无效**，走下面「换端口」或「永久保留」
+- 显示为本项目 `node.exe` → 残留的开发服务器，直接结束
 
 ```powershell
-Get-NetTCPConnection -LocalPort 1420 -State Listen -ErrorAction SilentlyContinue |
+Get-NetTCPConnection -LocalPort 1430 -State Listen -ErrorAction SilentlyContinue |
   ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 ```
 
-备选（不支持 `Get-NetTCPConnection` 的老系统）：
+老系统没有 `Get-NetTCPConnection` 时：`netstat -ano | findstr :1430` 取最后一列 PID，
+再 `taskkill /PID <PID> /F`。
+
+#### 换端口（不需要管理员权限，推荐）
+
+同时修改这两处，值必须一致；如果用到跨设备 HMR，`hmr.port` 也顺带改：
+
+| 文件 | 字段 |
+|---|---|
+| `apps/windows/vite.config.ts` | `server.port`（以及 `server.hmr.port`） |
+| `apps/windows/src-tauri/tauri.conf.json` | `build.devUrl` |
+
+选端口前先跑一次 `netsh int ipv4 show excludedportrange protocol=tcp`，避开列表中的所有区间。
+
+#### 永久保留端口（需要管理员 PowerShell）
+
+让 Windows 不再把该端口分配给 Hyper-V/WinNAT，之后重启系统也不会漂移：
 
 ```powershell
-netstat -ano | findstr :1420      # 取最后一列 PID
-taskkill /PID <PID> /F
+# 以管理员身份运行
+net stop winnat
+netsh int ipv4 add excludedportrange protocol=tcp startport=1430 numberofports=10
+net start winnat
 ```
 
-如果占着端口的是**别的应用**，不要杀它，改用端口：同时改
-`apps/windows/vite.config.ts` 的 `server.port` 与 `src-tauri/tauri.conf.json` 的 `devUrl`（以及 `hmr.port` 若用到），两者必须一致。
+这条命令把 1430–1439 从动态分配池中排除，本项目仍可绑定这些端口。撤销：
+
+```powershell
+netsh int ipv4 delete excludedportrange protocol=tcp startport=1430 numberofports=10
+```
+
+#### 现象对照
 
 | 现象 | 处理 |
 |---|---|
-| 终端提示 `Port 1420 is already in use` | 按上面的命令找占用进程并结束；通常是上次 `tauri dev` 没退干净 |
-| Console 报 `ERR_CONNECTION_REFUSED` / `Failed to load resource` | Vite 没起来：确认终端里有 `Local: http://localhost:1420/` |
-| 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `devUrl` 改成 `http://127.0.0.1:1420` |
+| 终端提示 `Port 1430 is already in use` | 按上面的命令确认是残留 node 进程（结束）还是 Hyper-V 保留段（换端口或永久保留） |
+| Console 报 `ERR_CONNECTION_REFUSED` | Vite 没起来：确认终端里有 `Local: http://localhost:1430/` |
+| 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `devUrl` 改成 `http://127.0.0.1:1430` |
 | WebView2 缺失 | `winget install Microsoft.EdgeWebView2Runtime` |
 
 ### 8.3 构建与环境类

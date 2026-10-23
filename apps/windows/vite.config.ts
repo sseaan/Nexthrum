@@ -10,17 +10,18 @@ export default defineConfig(async () => ({
   // Vite options tailored for Tauri development
   clearScreen: false,
   server: {
-    port: 1420,
-    // tauri.conf.json's devUrl hard-codes 1420, so a fallback port would load a
-    // blank window. Failing loudly is the better trade-off; see
-    // docs/windows-testing.md 8.2 for clearing a stale listener.
+    // Must stay identical to src-tauri/tauri.conf.json "devUrl".
+    // 1420 is commonly inside a Hyper-V/WinNAT excluded range on Windows, which
+    // fails the whole launch with strictPort; 1430 is less frequently reserved.
+    // See docs/windows-testing.md 8.2 if this port is taken as well.
+    port: 1430,
     strictPort: true,
     host: host || false,
     hmr: host
       ? {
           protocol: "ws",
           host,
-          port: 1421,
+          port: 1431,
         }
       : undefined,
     watch: {
