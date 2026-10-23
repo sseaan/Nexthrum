@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import OSLog
 import Security
+import Sparkle
 import SwiftUI
 
 let logger = Logger(subsystem: "com.nexthrum.app", category: "connection")
@@ -76,6 +77,15 @@ final class AppModel: ObservableObject {
     @Published var notificationPermissionStatus = "Checking…"
 
     @Published var notificationPermissionDenied = false
+
+    /// Sparkle drives macOS updates: it checks the appcast, verifies the EdDSA
+    /// signature and installs the new bundle. Starting it with the app is the
+    /// documented setup for non-nib applications.
+    let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
 
     let notificationService = MacNotificationService()
 

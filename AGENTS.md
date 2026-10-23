@@ -46,7 +46,8 @@ Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端
 5. **连接配置串行化**：`save_settings` / `connect_websocket` / `disconnect_websocket` 共用 `AppState.connection_update`，消息变更共用 `AppState.message_update`。
 6. **设置与连接解耦**：设置持久化成功后即使重连失败也要保留新设置，并返回明确错误。
 7. **迁移要向后兼容**：新增列必须走 migration，并考虑早期 schema 缺列（参考 `ensure_local_columns`）。
-8. **发布变更先读手册**：版本号需同时更新 `package.json` 与 `tauri.conf.json`（CI 校验一致），签名/公证与更新策略见 `docs/release.md`。
+8. **macOS 签名与更新**：用 `scripts/create-local-signing-identity.sh` 建立稳定自签身份（不要退回 ad-hoc，否则钥匙串授权每次重建都重置）；macOS 自动更新走 Sparkle（`apps/macos/Vendor/Sparkle.framework`），`CFBundleVersion` 必须递增。
+9. **发布变更先读手册**：版本号需同时更新 `package.json` 与 `tauri.conf.json`（CI 校验一致），签名/公证与更新策略见 `docs/release.md`。
 
 ## 5. 开发流程
 

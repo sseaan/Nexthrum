@@ -23,7 +23,7 @@
 | 文件 | 说明 |
 |---|---|
 | `Nexthrum_<version>_x64-setup.exe` | NSIS 安装包（`installMode: currentUser`，无需管理员） |
-| `Nexthrum_portable.zip` | 便携版 |
+| `Nexthrum_<version>_x64-portable.zip` | 便携版 |
 
 **流程**
 
@@ -45,33 +45,28 @@
 
 **现状**：仅 arm64、最低 macOS 14.0。维护者**没有付费 Apple Developer 账号**，因此默认走「ad-hoc 签名 + 未公证 DMG」路线；有账号时可按下面的完整流程升级。
 
-### 3.1 无开发者账号（当前路线）
+### 3.1 无开发者账号（当前路线）：稳定自签身份 + Sparkle
+
+没有 Apple 证书不等于只能手动更新。当前采用：
+
+**稳定自签名身份**（解决"每次重装钥匙串都重新授权"）
 
 ```bash
-scripts/package-macos-dmg.sh            # 版本号默认取 package.json
+scripts/create-local-signing-identity.sh        # 一次性创建，私钥备份在 ~/.tauri/nexthrum-signing
+scripts/package-macos-dmg.sh                    # 自动使用 "Nexthrum Local Signing" 签名
 ```
 
-脚本会：Release 构建 → `CODE_SIGN_IDENTITY=-`（ad-hoc 签名）→ 校验 app 与内嵌 `libnexthrum_ffi.dylib` 签名 → 打包 DMG（含 `/Applications` 快捷方式）。
+- 签名稳定 → designated requirement 不变 → Keychain「始终允许」与通知/登录项授权不再反复重置
+- CI 通过 `MACOS_SIGNING_CERT_P12` / `MACOS_SIGNING_CERT_PASSWORD` 两个 secret 导入同一身份
+- Gatekeeper 限制仍在：首次从 DMG 安装需右键打开或 `xattr -dr com.apple.quarantine`
 
-能力与限制：
+**Sparkle 自动更新**（与 Apple 签名无关）
 
-| 项目 | 状态 |
-|---|---|
-| ad-hoc 签名 | ✅ 有（`codesign -dv` 显示 `Signature=adhoc`） |
-| Gatekeeper 首次打开 | ❌ 提示「无法验证开发者」 |
-| 公证/stapling | ❌ 不可能（需要付费账号） |
-| 收件人安装方式 | 右键 → 打开，或 `xattr -dr com.apple.quarantine /Applications/NexthrumMac.app` |
-
-因此 **内部/自用分发可行，公开发布体验较差**，必须在发布说明中写明上述安装步骤。
-
-**关于钥匙串重复授权**：ad-hoc 签名每次构建都会变化，macOS 会把新构建当成另一个应用，从而反复询问「允许访问钥匙串」。若希望「始终允许」长期有效，可在本机创建稳定的自签名身份：
-
-```bash
-scripts/create-local-signing-identity.sh
-SIGN_IDENTITY="Nexthrum Local Signing" scripts/package-macos-dmg.sh
-```
-
-该身份同样不是 Developer ID，Gatekeeper 提示依旧存在，但签名与钥匙串 ACL 保持稳定。
+- `Sparkle.framework` 以二进制形式内嵌在 `apps/macos/Vendor/`（当前 2.10.0）
+- `Info.plist`：`SUFeedURL` 指向 Release 的 `appcast.xml`、`SUPublicEDKey` 为 EdDSA 公钥、`SUEnableAutomaticChecks`
+- `CFBundleVersion` 必须单调递增（当前 `2000`，每次发布递增）
+- 更新包由 `generate_appcast` 用 EdDSA 私钥签名，客户端校验后才安装；私钥在登录钥匙串，导出备份为 `~/.tauri/sparkle-ed25519.key`，CI 用 `SPARKLE_EDDSA_PRIVATE_KEY`
+- 本地已验证完整链路：appcast → 下载 → `EdDSA signature is correct for update` → 版本由 2000 升到 2001
 
 ### 3.2 有开发者账号时的完整流程
 

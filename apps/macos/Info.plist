@@ -24,10 +24,18 @@
     <key>CFBundleShortVersionString</key>
     <string>2.0.0</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>2000</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://github.com/sseaan/Nexthrum/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>PORaTJOmO2BBjxI7LhpRFx2FR+bDv7klii5QCEk9ssg=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUAllowsAutomaticUpdates</key>
     <true/>
 </dict>
 </plist>

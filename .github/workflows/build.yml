@@ -95,3 +95,91 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: Nexthrum_portable.zip
+
+  macos:
+    name: macOS arm64 release
+    runs-on: macos-14
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Fetch Sparkle tools
+        run: |
+          curl -sSL -o sparkle.tar.xz \
+            https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz
+          tar -xf sparkle.tar.xz ./bin
+          echo "SPARKLE_BIN=$PWD/bin" >> "$GITHUB_ENV"
+
+      - name: Import self-signed signing identity
+        env:
+          MACOS_SIGNING_CERT_P12: ${{ secrets.MACOS_SIGNING_CERT_P12 }}
+          MACOS_SIGNING_CERT_PASSWORD: ${{ secrets.MACOS_SIGNING_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ci-signing
+        run: |
+          # No Apple Developer certificate is available. A *stable* self-signed
+          # identity keeps the signature (Sparkle identity checks, Keychain ACLs)
+          # consistent between releases. Gatekeeper still warns on first install.
+          KEYCHAIN="$RUNNER_TEMP/nexthrum-signing.keychain-db"
+          P12="$RUNNER_TEMP/identity.p12"
+
+          echo "$MACOS_SIGNING_CERT_P12" | base64 --decode > "$P12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$P12" -k "$KEYCHAIN" \
+            -P "$MACOS_SIGNING_CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" \
+            $(security list-keychains -d user | tr -d '"')
+
+          # codesign only lists identities that are trusted for code signing.
+          openssl pkcs12 -in "$P12" -legacy -nokeys \
+            -passin pass:"$MACOS_SIGNING_CERT_PASSWORD" -out "$RUNNER_TEMP/cert.pem"
+          security add-trusted-cert -r trustRoot -p codeSign -k "$KEYCHAIN" "$RUNNER_TEMP/cert.pem"
+
+          security find-identity -v -p codesigning | grep -F "Nexthrum Local Signing"
+
+      - name: Build signed app bundle
+        run: |
+          DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+          CODE_SIGN_IDENTITY="Nexthrum Local Signing" \
+          CODE_SIGN_STYLE=Manual \
+          CODE_SIGNING_ALLOWED=YES \
+          DERIVED_DATA_PATH="$PWD/target/xcode-derived" \
+            scripts/build-macos-xcode.sh
+
+      - name: Package update archive
+        run: |
+          VERSION=$(node -p "require('./apps/windows/package.json').version")
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent \
+            target/xcode-derived/Build/Products/Debug/NexthrumMac.app \
+            "dist/Nexthrum-${VERSION}.zip"
+
+      - name: Sign appcast
+        run: |
+          # Import the EdDSA key into the temporary keychain so generate_appcast
+          # can sign the enclosure.
+          echo "$SPARKLE_EDDSA_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle.key"
+          "$SPARKLE_BIN/generate_keys" -f "$RUNNER_TEMP/sparkle.key"
+          "$SPARKLE_BIN/generate_appcast" dist \
+            --download-url-prefix "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/"
+        env:
+          SPARKLE_EDDSA_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+
+      - name: Upload macOS update to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/appcast.xml
+            dist/*.zip

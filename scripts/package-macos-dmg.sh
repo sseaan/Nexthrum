@@ -32,10 +32,17 @@ DMG="$OUT/Nexthrum-${VERSION}-arm64.dmg"
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
+LOCAL_IDENTITY="Nexthrum Local Signing"
+# Prefer the stable self-signed identity when it exists: it keeps the Keychain
+# ACL and TCC grants across rebuilds. Fall back to ad-hoc signing otherwise.
+if [[ -z "${SIGN_IDENTITY:-}" ]] && security find-identity -v -p codesigning 2>/dev/null | grep -Fq "$LOCAL_IDENTITY"; then
+  SIGN_IDENTITY="$LOCAL_IDENTITY"
+fi
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+
 if [[ "$SIGN_IDENTITY" == "-" ]]; then
   echo "==> Building Release app (ad-hoc signed; Keychain grants are lost on every rebuild)"
-  echo "    Run scripts/create-local-signing-identity.sh and set SIGN_IDENTITY to keep them."
+  echo "    Run scripts/create-local-signing-identity.sh for a stable identity."
 else
   echo "==> Building Release app (signed with: $SIGN_IDENTITY)"
 fi

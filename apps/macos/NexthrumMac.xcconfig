@@ -14,6 +14,7 @@ SWIFT_VERSION = 5.0
 
 LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks
 LIBRARY_SEARCH_PATHS = $(inherited) $(SRCROOT)/../../target/debug/deps
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/Vendor
 MODULEMAP_FILE = Generated/nexthrum_ffiFFI.modulemap
 OTHER_SWIFT_FLAGS = $(inherited) -Xcc -fmodule-map-file=$(SRCROOT)/Generated/nexthrum_ffiFFI.modulemap
 SWIFT_INCLUDE_PATHS = $(SRCROOT)/Generated

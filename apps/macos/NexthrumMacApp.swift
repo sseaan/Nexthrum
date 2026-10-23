@@ -25,6 +25,12 @@ struct NexthrumMacApp: App {
                     NSApp.orderFrontStandardAboutPanel()
                 }
             }
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    model.updaterController.checkForUpdates(nil)
+                }
+                .disabled(!model.updaterController.updater.canCheckForUpdates)
+            }
         }
 
         Settings {
