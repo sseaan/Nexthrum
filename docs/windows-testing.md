@@ -223,10 +223,18 @@ cd apps\windows
 npm run dev
 ```
 
-然后在 Edge/Chrome 打开 `http://localhost:1430`：
+然后在 Edge/Chrome 打开 `http://localhost:1520`（端口以 `DEV_PORT` 为准）：
 
 - 浏览器能正常显示界面 → 前端没问题，问题在 Tauri 窗口或 WebView2（继续看 8.2）
 - 浏览器也空白 → 前端运行时错误，浏览器 Console 会直接给出文件和行号
+
+> 浏览器里只是**渲染预览**：标题栏会显示 `browser preview` 标记，三个窗口按钮为禁用态，
+> 消息、设置保存等 Tauri IPC 调用会失败，这是预期行为，不要当作 bug 上报——浏览器只用来
+> 验证布局、主题和样式。
+>
+> 如果在浏览器里看到 `Cannot read properties of undefined (reading 'metadata')`，说明代码里有
+> 未做运行时判断就调用了 `@tauri-apps/api`（`window.__TAURI_INTERNALS__` 不存在），这属于要修的缺陷，
+> 用 `isTauriRuntime()`（`src/utils/tauriEnv.ts`）做守卫。
 
 ### 8.2 端口与 Hyper-V 占用
 

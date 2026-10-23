@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useI18n } from "../../i18n";
+import { isTauriRuntime } from "../../utils/tauriEnv";
 import { cx } from "../../utils/cx";
 import {
   MaximizeGlyph,
@@ -15,14 +16,21 @@ import {
  * The window is created with `decorations: false`, so the app owns the logo,
  * product name and the three caption buttons. The drag region and the buttons
  * are separate elements: pressing a button must never start a window drag.
+ *
+ * Outside Tauri (plain browser) the buttons are disabled: `getCurrentWindow()`
+ * would throw because the IPC internals are not injected.
  */
 export function TitleBar() {
   const { t } = useI18n();
   const [maximized, setMaximized] = useState(false);
 
+  // `getCurrentWindow()` throws without the Tauri IPC bridge, so resolve it once
+  // and only when the runtime is available.
+  const appWindow = useMemo(() => (isTauriRuntime() ? getCurrentWindow() : null), []);
+
   useEffect(() => {
+    if (!appWindow) return;
     let disposed = false;
-    const appWindow = getCurrentWindow();
 
     const sync = async () => {
       try {
@@ -42,23 +50,17 @@ export function TitleBar() {
       disposed = true;
       void unlisten.then((fn) => fn()).catch(() => {});
     };
-  }, []);
+  }, [appWindow]);
 
-  const startDragging = () => {
-    void getCurrentWindow().startDragging().catch(() => {});
+  const withWindow = (action: (window: NonNullable<typeof appWindow>) => Promise<void>) => () => {
+    if (!appWindow) return;
+    void action(appWindow).catch(() => {});
   };
 
-  const handleToggleMaximize = () => {
-    void getCurrentWindow().toggleMaximize().catch(() => {});
-  };
-
-  const handleMinimize = () => {
-    void getCurrentWindow().minimize().catch(() => {});
-  };
-
-  const handleClose = () => {
-    void getCurrentWindow().close().catch(() => {});
-  };
+  const startDragging = withWindow((window) => window.startDragging());
+  const handleToggleMaximize = withWindow((window) => window.toggleMaximize());
+  const handleMinimize = withWindow((window) => window.minimize());
+  const handleClose = withWindow((window) => window.close());
 
   const captionButton = (
     label: string,
@@ -71,8 +73,10 @@ export function TitleBar() {
       title={label}
       aria-label={label}
       onClick={onClick}
+      disabled={!appWindow}
       className={cx(
         "inline-flex w-11 items-center justify-center transition-colors",
+        "disabled:cursor-not-allowed disabled:opacity-40",
         danger
           ? "text-[var(--color-text-secondary)] hover:bg-[var(--color-danger)] hover:text-white"
           : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]",
@@ -103,6 +107,14 @@ export function TitleBar() {
         <span className="truncate text-xs font-semibold tracking-wide text-[var(--color-text-secondary)]">
           {t.app.title}
         </span>
+        {!appWindow && (
+          <span
+            className="flex-shrink-0 rounded-full bg-[var(--color-surface-hover)] px-1.5 py-0.5 text-[10px] text-[var(--color-text-muted)]"
+            title="没有检测到 Tauri 运行时：当前是浏览器预览，消息与窗口操作不可用"
+          >
+            browser preview
+          </span>
+        )}
       </div>
 
       <div
