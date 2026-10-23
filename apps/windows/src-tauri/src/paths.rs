@@ -1,4 +1,8 @@
-pub use nexthrum_storage::{cleanup_old_messages, get_unread_count, StoragePaths};
+//! Platform data locations for the Windows host.
+//!
+//! Keeping the legacy filenames means upgrades preserve existing user data.
+
+use nexthrum_storage::StoragePaths;
 use std::path::PathBuf;
 
 /// Resolve the existing platform location so migrations preserve current user data.

@@ -27,9 +27,6 @@ interface AppStore {
   setMessages: (messages: MessageListItem[]) => void;
   applyMessageSnapshot: (snapshot: MessageSnapshot) => void;
   addMessage: (message: MessageListItem) => void;
-  markMessageRead: (id: number) => void;
-  removeMessage: (id: number) => void;
-  clearMessages: () => void;
 
   // UI State
   currentView: "messages" | "settings";
@@ -44,7 +41,6 @@ interface AppStore {
 
   // App filters
   apps: { appid: number; appname: string }[];
-  setApps: (apps: { appid: number; appname: string }[]) => void;
   /** Names resolved from the Gotify `/application` endpoint. */
   appNames: Record<number, string>;
   setAppNames: (names: Record<number, string>) => void;
@@ -103,18 +99,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
         apps: Array.from(appMap.values()),
       };
     }),
-  markMessageRead: (id) =>
-    set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === id ? { ...message, read: true } : message,
-      ),
-    })),
-  removeMessage: (id) =>
-    set((state) => ({
-      messages: state.messages.filter((m) => m.id !== id),
-    })),
-  clearMessages: () => set({ messages: [], apps: [], unreadCount: 0 }),
-
   currentView: "messages",
   setCurrentView: (currentView) => set({ currentView }),
   selectedAppId: null,
@@ -129,7 +113,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setConnectionState: (connectionState) => set({ connectionState }),
 
   apps: [],
-  setApps: (apps) => set({ apps }),
   appNames: {},
   setAppNames: (appNames) =>
     set((state) => ({

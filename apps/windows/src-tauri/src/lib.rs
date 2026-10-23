@@ -1,6 +1,6 @@
 mod commands;
 mod credentials;
-mod storage;
+mod paths;
 mod tray;
 mod websocket;
 
@@ -15,7 +15,7 @@ use tokio::sync::Mutex;
 pub struct AppState {
     pub settings: Arc<Mutex<AppSettings>>,
     pub ws_handle: Arc<Mutex<Option<websocket::WsHandle>>>,
-    pub storage_paths: storage::StoragePaths,
+    pub storage_paths: nexthrum_storage::StoragePaths,
     pub connection_update: Arc<Mutex<()>>,
     pub message_update: Arc<Mutex<()>>,
 }
@@ -28,7 +28,7 @@ pub fn run() {
     env_logger::init();
 
     let storage_paths =
-        storage::platform_default().expect("failed to resolve Nexthrum storage paths");
+        paths::platform_default().expect("failed to resolve Nexthrum storage paths");
     let settings = credentials::load_settings(&storage_paths).unwrap_or_default();
     let app_state = AppState {
         settings: Arc::new(Mutex::new(settings.clone())),
@@ -104,8 +104,8 @@ pub fn run() {
             let settings_clone = settings.clone();
             let paths = storage_paths.clone();
             tauri::async_runtime::spawn(async move {
-                let _ = storage::cleanup_old_messages(&paths, &settings_clone);
-                let unread = storage::get_unread_count(&paths).unwrap_or(0);
+                let _ = nexthrum_storage::cleanup_old_messages(&paths, &settings_clone);
+                let unread = nexthrum_storage::get_unread_count(&paths).unwrap_or(0);
                 let _ = handle.emit("unread-count-changed", unread);
             });
 
@@ -114,11 +114,15 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 loop {
                     tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await;
-                    let state = handle_clone.state::<AppState>();
-                    let settings = state.settings.lock().await;
-                    let _ = storage::cleanup_old_messages(&paths, &settings);
-                    let unread = storage::get_unread_count(&paths).unwrap_or(0);
-                    drop(settings);
+                    // Copy the settings out so the lock is not held across SQLite
+                    // work (which would delay saving settings for that duration).
+                    let snapshot = {
+                        let state = handle_clone.state::<AppState>();
+                        let settings = state.settings.lock().await;
+                        settings.clone()
+                    };
+                    let _ = nexthrum_storage::cleanup_old_messages(&paths, &snapshot);
+                    let unread = nexthrum_storage::get_unread_count(&paths).unwrap_or(0);
                     let _ = handle_clone.emit("unread-count-changed", unread);
                 }
             });
