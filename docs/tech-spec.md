@@ -6,7 +6,7 @@
 - Tauri 2、React 18、TypeScript、Zustand、Tailwind CSS v4、Rust。
 - Tauri 命令层已是薄适配器：参数校验 + 调用 Rust Core 用例 + 事件/错误呈现。
 
-### macOS（新增）
+### macOS
 - 原生 UI：SwiftUI。
 - 共享业务：Rust Core；Swift 通过生成的 UniFFI bindings 调用（已验证 DTO、错误映射、异步事件轮询与取消）。
 - 平台能力：Swift/Apple 框架实现菜单栏、窗口、UserNotifications、开机启动、Keychain 等。
