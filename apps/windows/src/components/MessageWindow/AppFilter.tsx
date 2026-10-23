@@ -1,5 +1,6 @@
 import { useAppStore } from "../../store/useAppStore";
 import { useI18n } from "../../i18n";
+import { cx } from "../../utils/cx";
 
 /**
  * Source filter chips. Shown only when messages come from two or more Gotify
@@ -32,6 +33,7 @@ export function AppFilter() {
   ) => (
     <button
       key={key}
+      type="button"
       onClick={onClick}
       aria-pressed={selected}
       aria-label={
@@ -39,19 +41,25 @@ export function AppFilter() {
           ? `${label}, ${total} messages, ${unread} unread`
           : `${label}, ${total} messages`
       }
-      className={`flex items-center gap-1.5 px-3 py-1 text-xs rounded-full whitespace-nowrap border transition-colors ${
+      className={cx(
+        "flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs transition-colors",
         selected
-          ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-          : "bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-      }`}
+          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
+          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]",
+      )}
     >
-      <span className={selected ? "font-semibold" : ""}>{label}</span>
+      <span className={cx("max-w-[10rem] truncate", selected && "font-semibold")}>
+        {label}
+      </span>
       <span className="tabular-nums opacity-75">{total}</span>
       {unread > 0 && (
         <span
-          className={`tabular-nums font-bold px-1 rounded-full ${
-            selected ? "bg-white/25" : "bg-[var(--color-primary)]/20 text-[var(--color-primary)]"
-          }`}
+          className={cx(
+            "rounded-full px-1 font-bold tabular-nums",
+            selected
+              ? "bg-white/25"
+              : "bg-[var(--color-primary-soft)] text-[var(--color-primary)]",
+          )}
         >
           {unread}
         </span>
@@ -60,28 +68,31 @@ export function AppFilter() {
   );
 
   return (
-    <div
-      className="flex items-center gap-1.5 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto"
-      aria-label={t.filter.label}
-    >
-      {chip(
-        "all",
-        t.filter.allApps,
-        messages.length,
-        unreadTotal,
-        selectedAppId === null,
-        () => setSelectedAppId(null),
-      )}
-      {apps.map((app) =>
-        chip(
-          String(app.appid),
-          app.appname,
-          messages.filter((m) => m.appid === app.appid).length,
-          unreadByApp.get(app.appid) ?? 0,
-          selectedAppId === app.appid,
-          () => setSelectedAppId(app.appid),
-        ),
-      )}
+    <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div
+        className="mx-auto flex w-full max-w-3xl items-center gap-1.5 overflow-x-auto px-4 py-2"
+        aria-label={t.filter.label}
+        role="group"
+      >
+        {chip(
+          "all",
+          t.filter.allApps,
+          messages.length,
+          unreadTotal,
+          selectedAppId === null,
+          () => setSelectedAppId(null),
+        )}
+        {apps.map((app) =>
+          chip(
+            String(app.appid),
+            app.appname,
+            messages.filter((m) => m.appid === app.appid).length,
+            unreadByApp.get(app.appid) ?? 0,
+            selectedAppId === app.appid,
+            () => setSelectedAppId(app.appid),
+          ),
+        )}
+      </div>
     </div>
   );
 }

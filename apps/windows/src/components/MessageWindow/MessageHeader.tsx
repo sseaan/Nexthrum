@@ -3,11 +3,18 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../../store/useAppStore";
 import { useMessageSnapshot } from "../../hooks/useMessageSnapshot";
 import { useI18n, fmt } from "../../i18n";
+import { Button } from "../ui/Button";
+import { IconButton } from "../ui/IconButton";
+import { Input } from "../ui/Input";
+import { PageHeader } from "../ui/PageHeader";
+import { AlertIcon, CloseIcon, RefreshIcon, SearchIcon, SettingsIcon } from "../ui/icons";
+import { cx } from "../../utils/cx";
 import type { MessageSnapshot } from "../../types";
 
 /**
- * Top bar for the message list: title, unread pill, connection status and the
- * primary actions. Mirrors the macOS header so both platforms read the same.
+ * Top bar for the message list: title, unread pill, search, connection status
+ * and the primary actions. Mirrors the macOS header so both platforms read the
+ * same while keeping a Windows-shaped layout.
  */
 export function MessageHeader() {
   const { t } = useI18n();
@@ -53,142 +60,143 @@ export function MessageHeader() {
         : "bg-[var(--color-danger)]";
 
   return (
-    <div className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-      <div className="flex items-center gap-3 px-4 pt-3">
-        <h1 className="text-lg font-semibold text-[var(--color-text)]">
-          {t.header.title}
-        </h1>
-        {unreadCount > 0 && (
-          <span className="text-xs font-semibold bg-[var(--color-primary)]/15 text-[var(--color-primary)] px-2 py-0.5 rounded-full">
-            {fmt(t.header.unread, { n: unreadCount })}
+    <>
+      <PageHeader
+        title={t.header.title}
+        badge={
+          unreadCount > 0 ? (
+            <span className="flex-shrink-0 rounded-full bg-[var(--color-primary-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-primary)] tabular-nums">
+              {fmt(t.header.unread, { n: unreadCount })}
+            </span>
+          ) : null
+        }
+        actions={
+          <>
+            <IconButton
+              label={t.header.reconnect}
+              onClick={handleReconnect}
+              disabled={reconnecting || connectionState === "connecting"}
+            >
+              <RefreshIcon size={15} />
+            </IconButton>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setCurrentView("settings")}
+              title={t.header.settings}
+              aria-label={t.header.settings}
+            >
+              <SettingsIcon size={15} />
+              <span className="hidden min-[560px]:inline">{t.header.settings}</span>
+            </Button>
+          </>
+        }
+      >
+        <div className="relative mt-2">
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
+            <SearchIcon size={14} />
           </span>
-        )}
-        <div className="flex-1" />
-        <button
-          onClick={handleReconnect}
-          disabled={reconnecting || connectionState === "connecting"}
-          title={t.header.reconnect}
-          aria-label={t.header.reconnect}
-          className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:opacity-40 transition-colors"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path
-              d="M13.5 8a5.5 5.5 0 1 1-1.8-4.08M13.5 2v3.5H10"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        <button
-          onClick={() => setCurrentView("settings")}
-          title={t.header.settings}
-          aria-label={t.header.settings}
-          className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] transition-colors"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.4" />
-            <path
-              d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.5 3.5l1.1 1.1M11.4 11.4l1.1 1.1M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div className="px-4 pb-1">
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-bg)] border border-[var(--color-border)] focus-within:border-[var(--color-primary)] transition-colors max-w-[260px]">
-          <span className="text-[var(--color-text-secondary)] text-xs" aria-hidden="true">⌕</span>
-          <input
+          <Input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.search.placeholder}
             aria-label={t.search.placeholder}
-            className="flex-1 bg-transparent text-xs text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none"
+            className="h-8 pl-8 pr-8 text-xs"
           />
           {searchQuery !== "" && (
             <button
+              type="button"
               onClick={() => setSearchQuery("")}
               title={t.search.clear}
               aria-label={t.search.clear}
-              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] text-xs"
+              className="absolute right-1.5 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
             >
-              ✕
+              <CloseIcon size={12} />
             </button>
           )}
         </div>
-      </div>
 
-      <div className="flex items-center gap-2 px-4 pb-2 pt-1 text-xs text-[var(--color-text-secondary)]">
-        <span
-          className={`w-2 h-2 rounded-full ${dotClass}`}
-          role="status"
-          aria-label={t.connection[connectionState]}
-          title={t.connection[connectionState]}
-        />
-        <span>{t.connection[connectionState]}</span>
-        <span className="opacity-60">·</span>
-        <span>{fmt(t.header.cached, { n: messages.length })}</span>
-        <div className="flex-1" />
-        {messages.length > 0 && (
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            className="underline-offset-2 hover:underline hover:text-[var(--color-text)] transition-colors"
-          >
-            {t.header.clearAll}
-          </button>
-        )}
-      </div>
-
-      {connectionError && (
-        <div
-          role="alert"
-          className="flex items-start gap-2 px-4 py-1.5 text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 border-t border-[var(--color-danger)]/20"
-        >
-          <span aria-hidden="true">⚠</span>
-          <span className="break-words">{connectionError}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--color-text-secondary)]">
+          <span
+            className={cx("h-2 w-2 flex-shrink-0 rounded-full", dotClass)}
+            role="status"
+            aria-label={t.connection[connectionState]}
+            title={t.connection[connectionState]}
+          />
+          <span>{t.connection[connectionState]}</span>
+          <span className="text-[var(--color-text-muted)]">·</span>
+          <span className="tabular-nums">{fmt(t.header.cached, { n: messages.length })}</span>
+          <div className="flex-1" />
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowClearConfirm(true)}
+              className="rounded-md px-1.5 py-0.5 text-xs text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)]"
+            >
+              {t.header.clearAll}
+            </button>
+          )}
         </div>
-      )}
+
+        {connectionError && (
+          <div
+            role="alert"
+            className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] px-2.5 py-1.5 text-xs text-[var(--color-danger)]"
+          >
+            <span className="mt-px flex-shrink-0">
+              <AlertIcon size={13} />
+            </span>
+            <span className="min-w-0 flex-1 break-words">{connectionError}</span>
+            <button
+              type="button"
+              onClick={handleReconnect}
+              disabled={reconnecting || connectionState === "connecting"}
+              className="flex-shrink-0 rounded underline underline-offset-2 transition-opacity hover:opacity-80 disabled:opacity-40"
+            >
+              {t.header.reconnect}
+            </button>
+          </div>
+        )}
+      </PageHeader>
 
       {showClearConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--color-surface)] rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl border border-[var(--color-border)]">
-            <h2 className="text-lg font-semibold text-[var(--color-text)] mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-overlay)] p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-all-title"
+            className="w-full max-w-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-popover)]"
+          >
+            <h2
+              id="clear-all-title"
+              className="text-base font-semibold text-[var(--color-text)]"
+            >
               {t.clearAll.title}
             </h2>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
               {t.clearAll.confirm}
             </p>
-            <label className="flex items-center gap-2 mb-4 text-sm text-[var(--color-text-secondary)] cursor-pointer">
+            <label className="mt-4 flex cursor-pointer items-start gap-2 text-sm text-[var(--color-text-secondary)]">
               <input
                 type="checkbox"
                 checked={syncServer}
                 onChange={(e) => setSyncServer(e.target.checked)}
-                className="rounded border-[var(--color-border)] bg-[var(--color-bg)]"
+                className="mt-0.5 h-4 w-4 rounded border-[var(--color-border)] accent-[var(--color-primary)]"
               />
-              {t.clearAll.syncServer}
+              <span>{t.clearAll.syncServer}</span>
             </label>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
-              >
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowClearConfirm(false)}>
                 {t.clearAll.cancel}
-              </button>
-              <button
-                onClick={handleClear}
-                className="px-4 py-2 text-sm rounded-md bg-[var(--color-danger)] text-white hover:bg-red-600 transition-colors"
-              >
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => void handleClear()}>
                 {t.clearAll.confirmButton}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

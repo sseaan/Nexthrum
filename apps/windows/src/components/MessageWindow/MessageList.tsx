@@ -1,9 +1,13 @@
 import { useAppStore } from "../../store/useAppStore";
 import { useI18n } from "../../i18n";
 import { MessageItem } from "./MessageItem";
+import { EmptyState } from "../ui/EmptyState";
+import { Button } from "../ui/Button";
+import { InboxIcon, SearchIcon } from "../ui/icons";
 
 export function MessageList() {
   const { t } = useI18n();
+  const setCurrentView = useAppStore((s) => s.setCurrentView);
   const messages = useAppStore((s) => s.messages);
   const selectedAppId = useAppStore((s) => s.selectedAppId);
   const searchQuery = useAppStore((s) => s.searchQuery);
@@ -18,32 +22,31 @@ export function MessageList() {
 
   if (isSearching && filteredMessages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
-        <div className="text-center">
-          <p className="text-3xl mb-2" aria-hidden="true">🔍</p>
-          <p className="text-sm">
-            {t.search.noMatches} “{searchQuery.trim()}”
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon={<SearchIcon size={20} />}
+        title={`${t.search.noMatches} “${searchQuery.trim()}”`}
+      />
     );
   }
 
   if (filteredMessages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
-        <div className="text-center">
-          <p className="text-4xl mb-2">📭</p>
-          <p className="text-sm">{t.message.empty}</p>
-          <p className="text-xs mt-1">{t.message.emptyHint}</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={<InboxIcon size={20} />}
+        title={t.message.empty}
+        hint={t.message.emptyHint}
+        action={
+          <Button size="sm" variant="secondary" onClick={() => setCurrentView("settings")}>
+            {t.message.openSettings}
+          </Button>
+        }
+      />
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-3">
-      <div className="flex flex-col gap-2">
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto w-full max-w-3xl space-y-2 px-4 pt-3 pb-4">
         {filteredMessages.map((msg) => (
           <MessageItem key={msg.id} message={msg} />
         ))}

@@ -1,6 +1,22 @@
 const en = {
   app: { title: "Nexthrum" },
 
+  window: {
+    minimize: "Minimize",
+    maximize: "Maximize",
+    restore: "Restore down",
+    close: "Close",
+  },
+
+  appearance: {
+    title: "Appearance",
+    theme: "Theme",
+    system: "System",
+    light: "Light",
+    dark: "Dark",
+    hint: "The theme only affects this device. System follows the Windows light/dark setting.",
+  },
+
   filter: {
     label: "Filter by source",
     allApps: "All Apps",
@@ -15,6 +31,7 @@ const en = {
     noTitle: "No Title",
     read: "Read",
     unread: "Unread",
+    openSettings: "Open settings",
   },
 
   tray: {
@@ -73,19 +90,24 @@ const en = {
 
   settings: {
     title: "Settings",
-    back: "← Back",
+    back: "Back",
     serverConnection: "Server Connection",
     serverUrl: "Server URL",
     clientToken: "Client Token",
+    tokenHint: "The token is kept in Windows Credential Manager, never in the settings file.",
     testConnection: "Test Connection",
-    testing: "Testing...",
+    testing: "Testing…",
     fillRequired: "Please fill in both Server URL and Client Token first.",
     connected: "Connected! Gotify server version: {version}",
-    general: "General",
+    general: "Startup & Window",
     autoStart: "Start with Windows",
+    autoStartHint: "Launch Nexthrum after sign-in and keep the connection in the background.",
     startHidden: "Start hidden to tray",
-    minimizeToTray: "Minimize to tray on close",
+    startHiddenHint: "Start without showing the main window; only the tray icon appears.",
+    minimizeToTray: "Hide to tray on close",
+    minimizeToTrayHint: "The close button hides the window; quit from the tray menu instead.",
     retention: "Message retention (days)",
+    retentionHint: "Cached messages older than this are cleaned up in the background.",
     dnd: "Do Not Disturb",
     dndHint:
       "Notifications will be suppressed during this time range (messages are still saved).",
@@ -93,8 +115,10 @@ const en = {
     dndEnd: "End",
     dndTo: "to",
     save: "Save Settings",
-    saving: "Saving...",
+    saving: "Saving…",
     saved: "Settings saved successfully!",
+    savedButDisconnected: "Settings were saved, but the server is unreachable: {error}",
+    saveFailed: "Could not save: {error}",
   },
 
   clearAll: {

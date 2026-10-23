@@ -1,9 +1,10 @@
-import { useState, useCallback, type MouseEvent } from "react";
+import { useState, useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useMessageSnapshot } from "../../hooks/useMessageSnapshot";
 import { useI18n } from "../../i18n";
 import { useAppStore } from "../../store/useAppStore";
 import { formatDate, formatFullDate, truncate } from "../../utils/format";
+import { cx } from "../../utils/cx";
 import type { MessageListItem, MessageSnapshot } from "../../types";
 
 interface MessageItemProps {
@@ -82,85 +83,108 @@ export function MessageItem({ message }: MessageItemProps) {
     setContextMenu(null);
   }, []);
 
+  // The card is clickable, so it must also be reachable from the keyboard.
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLElement>) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      void handleClick();
+    },
+    [handleClick],
+  );
+
   const isUnread = !message.read;
 
   return (
     <>
-      <div
+      <article
+        role="button"
+        tabIndex={0}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
-        className={`group relative rounded-[10px] border pl-3 pr-3 py-2.5 cursor-pointer transition-all duration-150 ${
+        className={cx(
+          "group relative cursor-pointer overflow-hidden rounded-xl border py-2.5 pl-3.5 pr-3 transition-colors",
+          "hover:shadow-[var(--shadow-card)]",
           isUnread
-            ? "border-[var(--color-primary)]/35 bg-[var(--color-primary)]/8 hover:bg-[var(--color-primary)]/12"
-            : "border-[var(--color-border)] bg-[var(--color-surface)]/60 hover:bg-[var(--color-surface-hover)]"
-        } hover:shadow-lg hover:shadow-black/20`}
+            ? "border-[var(--color-primary)]/35 bg-[var(--color-primary-soft)] hover:border-[var(--color-primary)]/55"
+            : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)]",
+        )}
         aria-label={`${isUnread ? t.message.unread : t.message.read}: ${
           message.title || t.message.noTitle
         }, ${formatFullDate(message.date)}`}
       >
         {/* Unread accent bar (cue 1 of 3) */}
         <span
-          className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${
-            isUnread ? "bg-[var(--color-primary)]" : "bg-transparent"
-          }`}
+          className={cx(
+            "absolute bottom-2 left-0 top-2 w-[3px] rounded-r-full transition-colors",
+            isUnread ? "bg-[var(--color-primary)]" : "bg-transparent",
+          )}
           aria-hidden="true"
         />
 
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-1.5">
               {/* Unread dot (cue 2) */}
               {isUnread && (
                 <span
-                  className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] flex-shrink-0"
+                  className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--color-primary)]"
                   aria-hidden="true"
                 />
               )}
               <h3
-                className={`text-sm truncate ${
+                className={cx(
+                  "min-w-0 truncate text-sm",
                   isUnread
-                    ? "font-bold text-[var(--color-text)]"
-                    : "font-normal text-[var(--color-text-secondary)]"
-                }`}
+                    ? "font-semibold text-[var(--color-text)]"
+                    : "font-normal text-[var(--color-text-secondary)]",
+                )}
               >
                 {message.title || t.message.noTitle}
               </h3>
             </div>
+
             <p
-              className={`text-xs leading-relaxed line-clamp-3 ${
+              className={cx(
+                "mt-1 line-clamp-3 text-xs leading-relaxed",
                 isUnread
-                  ? "text-[var(--color-text)]"
-                  : "text-[var(--color-text-secondary)]"
-              }`}
+                  ? "text-[var(--color-text-secondary)]"
+                  : "text-[var(--color-text-muted)]",
+              )}
             >
               {truncate(message.message, 300)}
             </p>
-            <div className="flex items-center gap-1.5 mt-1.5">
+
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                title={appLabel(message.appid)}
+                className={cx(
+                  "max-w-[12rem] truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                   isUnread
                     ? "bg-[var(--color-primary)]/15 text-[var(--color-primary)]"
-                    : "bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]"
-                }`}
+                    : "bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]",
+                )}
               >
                 {appLabel(message.appid)}
               </span>
               {message.priority > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] tabular-nums">
+                <span className="rounded-full bg-[var(--color-surface-hover)] px-1.5 py-0.5 text-[10px] tabular-nums text-[var(--color-text-muted)]">
                   P{message.priority}
                 </span>
               )}
             </div>
           </div>
+
           <time
-            className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap flex-shrink-0 mt-0.5 tabular-nums"
+            className="mt-0.5 flex-shrink-0 whitespace-nowrap text-[11px] tabular-nums text-[var(--color-text-muted)]"
             dateTime={message.date}
             title={formatFullDate(message.date)}
           >
             {formatDate(message.date)}
           </time>
         </div>
-      </div>
+      </article>
 
       {/* Context Menu */}
       {contextMenu && (
@@ -174,20 +198,25 @@ export function MessageItem({ message }: MessageItemProps) {
             }}
           />
           <div
-            className="fixed z-50 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md shadow-xl py-1 min-w-[140px]"
+            role="menu"
+            className="fixed z-50 min-w-[9rem] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-[var(--shadow-popover)]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             {isUnread && (
               <button
+                type="button"
+                role="menuitem"
                 onClick={handleMarkRead}
-                className="w-full text-left px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                className="w-full px-3 py-1.5 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-hover)]"
               >
                 {t.message.markRead}
               </button>
             )}
             <button
+              type="button"
+              role="menuitem"
               onClick={handleDelete}
-              className="w-full text-left px-4 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-surface-hover)] transition-colors"
+              className="w-full px-3 py-1.5 text-left text-sm text-[var(--color-danger)] transition-colors hover:bg-[var(--color-surface-hover)]"
             >
               {t.message.delete}
             </button>

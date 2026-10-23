@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../../store/useAppStore";
-import { useI18n } from "../../i18n";
+import { useI18n, fmt } from "../../i18n";
+import { useTheme, type ThemeMode } from "../../theme/useTheme";
+import { Button } from "../ui/Button";
+import { IconButton } from "../ui/IconButton";
+import { Field, Input } from "../ui/Input";
+import { PageHeader } from "../ui/PageHeader";
+import { Section } from "../ui/Section";
+import { SegmentedControl } from "../ui/SegmentedControl";
+import { Switch } from "../ui/Switch";
+import { AlertIcon, CheckIcon, ChevronLeftIcon } from "../ui/icons";
+import { cx } from "../../utils/cx";
 import type { AppSettings } from "../../types";
 
 export function SettingsWindow() {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
+  const themeMode = useTheme((s) => s.mode);
+  const setThemeMode = useTheme((s) => s.setMode);
   const settings = useAppStore((s) => s.settings);
   const setSettings = useAppStore((s) => s.setSettings);
   const setCurrentView = useAppStore((s) => s.setCurrentView);
@@ -34,7 +46,7 @@ export function SettingsWindow() {
         setSettings(form);
         setStatusMessage(error);
       } else {
-        setStatusMessage(`Failed to save: ${error}`);
+        setStatusMessage(fmt(t.settings.saveFailed, { error }));
       }
     } finally {
       setSaving(false);
@@ -70,10 +82,6 @@ export function SettingsWindow() {
     }
   };
 
-  const handleBack = () => {
-    setCurrentView("messages");
-  };
-
   const updateField = <K extends keyof AppSettings>(
     field: K,
     value: AppSettings[K],
@@ -81,226 +89,211 @@ export function SettingsWindow() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  return (
-    <div className="flex flex-col h-full bg-[var(--color-bg)]">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            className="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
-          >
-            {t.settings.back}
-          </button>
-          <h1 className="text-lg font-semibold text-[var(--color-text)]">
-            {t.settings.title}
-          </h1>
-        </div>
-      </div>
+  const statusIsError =
+    statusMessage !== null &&
+    !statusMessage.includes(t.settings.saved);
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-lg mx-auto space-y-6">
-          <section>
-            <h2 className="text-sm font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">
-              {t.settings.serverConnection}
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">
-                  {t.settings.serverUrl}
-                </label>
-                <input
-                  type="text"
-                  value={form.server_url}
-                  onChange={(e) => updateField("server_url", e.target.value)}
-                  placeholder="https://gotify.example.com"
-                  className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">
-                  {t.settings.clientToken}
-                </label>
-                <input
-                  type="password"
-                  value={form.client_token}
-                  onChange={(e) => updateField("client_token", e.target.value)}
-                  placeholder="Your Gotify client token"
-                  className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleTestConnection}
-                  disabled={testing}
-                  className="px-4 py-2 text-sm rounded-md bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:bg-[var(--color-border)] disabled:opacity-50 transition-colors"
-                >
-                  {testing ? t.settings.testing : t.settings.testConnection}
-                </button>
-              </div>
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-[var(--color-bg)]">
+      <PageHeader
+        title={t.settings.title}
+        leading={
+          <IconButton
+            label={t.settings.back}
+            onClick={() => setCurrentView("messages")}
+            className="-ml-1.5"
+          >
+            <ChevronLeftIcon size={16} />
+          </IconButton>
+        }
+        actions={
+          <Button size="sm" variant="primary" onClick={handleSave} disabled={saving}>
+            {saving ? t.settings.saving : t.settings.save}
+          </Button>
+        }
+      >
+        {statusMessage && (
+          <div
+            role="status"
+            className={cx(
+              "mt-2 flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+              statusIsError
+                ? "border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] text-[var(--color-danger)]"
+                : "border-[var(--color-success)]/25 bg-[var(--color-success-soft)] text-[var(--color-success)]",
+            )}
+          >
+            <span className="mt-px flex-shrink-0">
+              {statusIsError ? <AlertIcon size={13} /> : <CheckIcon size={13} />}
+            </span>
+            <span className="break-words">{statusMessage}</span>
+          </div>
+        )}
+      </PageHeader>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-5">
+          <Section title={t.settings.serverConnection}>
+            <Field label={t.settings.serverUrl} htmlFor="settings-server-url">
+              <Input
+                id="settings-server-url"
+                type="text"
+                value={form.server_url}
+                onChange={(e) => updateField("server_url", e.target.value)}
+                placeholder="https://gotify.example.com"
+                spellCheck={false}
+                autoComplete="url"
+              />
+            </Field>
+
+            <Field
+              label={t.settings.clientToken}
+              htmlFor="settings-client-token"
+              hint={t.settings.tokenHint}
+            >
+              <Input
+                id="settings-client-token"
+                type="password"
+                value={form.client_token}
+                onChange={(e) => updateField("client_token", e.target.value)}
+                placeholder="Axxxxxxxxxxxxxx"
+                autoComplete="off"
+              />
+            </Field>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleTestConnection}
+                disabled={testing}
+              >
+                {testing ? t.settings.testing : t.settings.testConnection}
+              </Button>
               {testResult && (
                 <p
-                  className={`text-xs ${
+                  className={cx(
+                    "min-w-0 flex-1 text-xs leading-relaxed",
                     testResult.startsWith("Connected")
                       ? "text-[var(--color-success)]"
-                      : "text-[var(--color-danger)]"
-                  }`}
+                      : "text-[var(--color-danger)]",
+                  )}
                 >
                   {testResult}
                 </p>
               )}
             </div>
-          </section>
+          </Section>
 
-          <section>
-            <h2 className="text-sm font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">
-              {t.settings.general}
-            </h2>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-sm text-[var(--color-text)]">
-                  {t.settings.autoStart}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.auto_start}
-                  onChange={(e) => updateField("auto_start", e.target.checked)}
-                  className="w-5 h-5 rounded border-[var(--color-border)] bg-[var(--color-surface)] accent-[var(--color-primary)]"
-                />
-              </label>
+          <Section title={t.settings.general}>
+            <Switch
+              id="settings-auto-start"
+              label={t.settings.autoStart}
+              description={t.settings.autoStartHint}
+              checked={form.auto_start}
+              onChange={(checked) => updateField("auto_start", checked)}
+            />
+            <Switch
+              id="settings-start-hidden"
+              label={t.settings.startHidden}
+              description={t.settings.startHiddenHint}
+              checked={form.start_hidden}
+              onChange={(checked) => updateField("start_hidden", checked)}
+            />
+            <Switch
+              id="settings-minimize-to-tray"
+              label={t.settings.minimizeToTray}
+              description={t.settings.minimizeToTrayHint}
+              checked={form.minimize_to_tray}
+              onChange={(checked) => updateField("minimize_to_tray", checked)}
+            />
 
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-sm text-[var(--color-text)]">
-                  {t.settings.startHidden}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.start_hidden}
-                  onChange={(e) =>
-                    updateField("start_hidden", e.target.checked)
-                  }
-                  className="w-5 h-5 rounded border-[var(--color-border)] bg-[var(--color-surface)] accent-[var(--color-primary)]"
-                />
-              </label>
+            <Field
+              label={t.settings.retention}
+              htmlFor="settings-retention"
+              hint={t.settings.retentionHint}
+              className="max-w-[12rem]"
+            >
+              <Input
+                id="settings-retention"
+                type="number"
+                min={1}
+                max={365}
+                value={form.history_retention_days}
+                onChange={(e) =>
+                  updateField(
+                    "history_retention_days",
+                    parseInt(e.target.value, 10) || 7,
+                  )
+                }
+                className="tabular-nums"
+              />
+            </Field>
+          </Section>
 
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="text-sm text-[var(--color-text)]">
-                  {t.settings.minimizeToTray}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.minimize_to_tray}
-                  onChange={(e) =>
-                    updateField("minimize_to_tray", e.target.checked)
-                  }
-                  className="w-5 h-5 rounded border-[var(--color-border)] bg-[var(--color-surface)] accent-[var(--color-primary)]"
-                />
-              </label>
+          <Section title={t.appearance.title} description={t.appearance.hint}>
+            <Field label={t.appearance.theme}>
+              <SegmentedControl
+                label={t.appearance.theme}
+                value={themeMode}
+                onChange={(value: ThemeMode) => setThemeMode(value)}
+                options={[
+                  { value: "system", label: t.appearance.system },
+                  { value: "light", label: t.appearance.light },
+                  { value: "dark", label: t.appearance.dark },
+                ]}
+              />
+            </Field>
 
-              <div>
-                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">
-                  {t.settings.retention}
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={365}
-                  value={form.history_retention_days}
-                  onChange={(e) =>
-                    updateField(
-                      "history_retention_days",
-                      parseInt(e.target.value) || 7,
-                    )
-                  }
-                  className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                />
-              </div>
-            </div>
-          </section>
+            <Field label={t.language.label}>
+              <SegmentedControl
+                label={t.language.label}
+                value={locale === "en-US" ? "en-US" : "zh-CN"}
+                onChange={(value) => setLocale(value)}
+                options={[
+                  { value: "zh-CN", label: t.language.zhCN },
+                  { value: "en-US", label: t.language.enUS },
+                ]}
+              />
+            </Field>
+          </Section>
 
-          {/* Language selector */}
-          <section>
-            <h2 className="text-sm font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">
-              {t.language.label}
-            </h2>
-            <div className="flex gap-2">
-              {(["zh-CN", "en-US"] as const).map((locale) => (
-                <button
-                  key={locale}
-                  onClick={() => {
-                    const { setLocale } = useI18n.getState();
-                    setLocale(locale);
-                  }}
-                  className={`px-4 py-2 text-sm rounded-md border transition-colors ${
-                    useI18n((s) => s.locale) === locale
-                      ? "border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
-                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-secondary)]"
-                  }`}
-                >
-                  {locale === "zh-CN" ? t.language.zhCN : t.language.enUS}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-sm font-semibold text-[var(--color-text)] mb-3 uppercase tracking-wide">
-              {t.settings.dnd}
-            </h2>
-            <p className="text-xs text-[var(--color-text-secondary)] mb-3">
-              {t.settings.dndHint}
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">
-                  {t.settings.dndStart}
-                </label>
-                <input
+          <Section title={t.settings.dnd} description={t.settings.dndHint}>
+            <div className="flex items-end gap-3">
+              <Field label={t.settings.dndStart} htmlFor="settings-dnd-start" className="flex-1">
+                <Input
+                  id="settings-dnd-start"
                   type="time"
                   value={form.do_not_disturb_start}
                   onChange={(e) =>
                     updateField("do_not_disturb_start", e.target.value)
                   }
-                  className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                 />
-              </div>
-              <span className="text-[var(--color-text-secondary)] mt-5">
+              </Field>
+              <span className="pb-2.5 text-xs text-[var(--color-text-muted)]">
                 {t.settings.dndTo}
               </span>
-              <div className="flex-1">
-                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">
-                  {t.settings.dndEnd}
-                </label>
-                <input
+              <Field label={t.settings.dndEnd} htmlFor="settings-dnd-end" className="flex-1">
+                <Input
+                  id="settings-dnd-end"
                   type="time"
                   value={form.do_not_disturb_end}
                   onChange={(e) =>
                     updateField("do_not_disturb_end", e.target.value)
                   }
-                  className="w-full px-3 py-2 text-sm rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                 />
-              </div>
+              </Field>
             </div>
-          </section>
+          </Section>
 
-          <div className="pt-4">
-            <button
+          <div className="pb-2">
+            <Button
+              variant="primary"
+              className="w-full"
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-2.5 text-sm font-medium rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50 transition-colors"
             >
               {saving ? t.settings.saving : t.settings.save}
-            </button>
-            {statusMessage && (
-              <p
-                className={`text-xs mt-2 text-center ${
-                  statusMessage.startsWith("Failed")
-                    ? "text-[var(--color-danger)]"
-                    : "text-[var(--color-success)]"
-                }`}
-              >
-                {statusMessage}
-              </p>
-            )}
+            </Button>
           </div>
         </div>
       </div>

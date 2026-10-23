@@ -2,6 +2,10 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../../store/useAppStore";
 import { useI18n } from "../../i18n";
+import { Button } from "../ui/Button";
+import { Field, Input } from "../ui/Input";
+import { AlertIcon, BellIcon, CheckIcon } from "../ui/icons";
+import { cx } from "../../utils/cx";
 import type { AppSettings } from "../../types";
 
 /**
@@ -50,6 +54,7 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
 
   const handleSave = async () => {
     if (!canSubmit) {
+      setShowToken(true);
       setError(t.onboarding.missing);
       return;
     }
@@ -61,12 +66,11 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
       // App.tsx picks the message view up from the saved settings.
     } catch (e) {
       const message = String(e);
+      // The host reports "saved but not connected" the same way as settings.
       if (message.includes("Settings were saved, but")) {
         setSettings(form);
-        setError(message);
-      } else {
-        setError(message);
       }
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -80,29 +84,33 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
 
   return (
     <div className="h-full overflow-y-auto bg-[var(--color-bg)]">
-      <div className="mx-auto w-full max-w-[560px] px-6 py-8 space-y-5">
-        <div className="space-y-2">
-          <div className="text-3xl" aria-hidden="true">🔔</div>
-          <h1 className="text-xl font-semibold text-[var(--color-text)]">
+      <div className="mx-auto w-full max-w-xl space-y-5 px-5 py-6">
+        <header className="space-y-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+            <BellIcon size={20} />
+          </div>
+          <h1 className="text-lg font-semibold text-[var(--color-text)]">
             {t.onboarding.welcome}
           </h1>
-          <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
+          <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
             {t.onboarding.intro}
           </p>
-        </div>
+        </header>
 
-        <ol className="space-y-2.5 rounded-xl bg-[var(--color-surface)] p-4">
+        <ol className="space-y-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
           {steps.map((step, index) => (
             <li key={step.title} className="flex items-start gap-2.5">
               <span
-                className="mt-0.5 w-[18px] h-[18px] rounded-full bg-[var(--color-primary)]/15 text-[var(--color-primary)] text-[11px] font-bold inline-flex items-center justify-center flex-shrink-0"
+                className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[11px] font-bold text-[var(--color-primary)]"
                 aria-hidden="true"
               >
                 {index + 1}
               </span>
-              <div className="space-y-0.5">
-                <p className="text-sm font-semibold text-[var(--color-text)]">{step.title}</p>
-                <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-sm font-semibold text-[var(--color-text)]">
+                  {step.title}
+                </p>
+                <p className="text-xs leading-relaxed text-[var(--color-text-secondary)]">
                   {step.detail}
                 </p>
               </div>
@@ -110,72 +118,97 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
           ))}
         </ol>
 
-        <div className="space-y-2.5">
-          <input
-            type="text"
-            value={form.server_url}
-            onChange={(e) => setForm((prev) => ({ ...prev, server_url: e.target.value }))}
-            placeholder={t.onboarding.serverUrlPlaceholder}
-            aria-label={t.onboarding.serverUrl}
-            className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-          />
+        <div className="space-y-3">
+          <Field label={t.onboarding.serverUrl} htmlFor="onboarding-server-url">
+            <Input
+              id="onboarding-server-url"
+              type="text"
+              value={form.server_url}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, server_url: e.target.value }))
+              }
+              placeholder={t.onboarding.serverUrlPlaceholder}
+              spellCheck={false}
+              autoComplete="url"
+              autoFocus
+            />
+          </Field>
 
           {showToken ? (
-            <input
-              type="password"
-              value={form.client_token}
-              onChange={(e) => setForm((prev) => ({ ...prev, client_token: e.target.value }))}
-              placeholder={t.onboarding.tokenPlaceholder}
-              aria-label={t.onboarding.clientToken}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-secondary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-            />
+            <Field label={t.onboarding.clientToken} htmlFor="onboarding-client-token">
+              <Input
+                id="onboarding-client-token"
+                type="password"
+                value={form.client_token}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, client_token: e.target.value }))
+                }
+                placeholder={t.onboarding.tokenPlaceholder}
+                autoComplete="off"
+              />
+            </Field>
           ) : (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setShowToken(true)}
-              className="text-xs text-[var(--color-primary)] hover:underline"
+              className="-ml-0.5"
             >
               {t.onboarding.showToken}
-            </button>
+            </Button>
           )}
 
           {testResult && (
-            <p
-              className={`text-xs flex items-start gap-1.5 ${
-                testSucceeded ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
-              }`}
+            <div
+              role="status"
+              className={cx(
+                "flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                testSucceeded
+                  ? "border-[var(--color-success)]/25 bg-[var(--color-success-soft)] text-[var(--color-success)]"
+                  : "border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
+              )}
             >
-              <span aria-hidden="true">{testSucceeded ? "✓" : "✕"}</span>
+              <span className="mt-px flex-shrink-0">
+                {testSucceeded ? <CheckIcon size={13} /> : <AlertIcon size={13} />}
+              </span>
               <span className="break-words">{testResult}</span>
-            </p>
+            </div>
           )}
-          {error && <p className="text-xs text-[var(--color-danger)] break-words">{error}</p>}
+
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] px-2.5 py-1.5 text-xs text-[var(--color-danger)]"
+            >
+              <span className="mt-px flex-shrink-0">
+                <AlertIcon size={13} />
+              </span>
+              <span className="break-words">{error}</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handleTest}
-            disabled={testing}
-            className="px-3 py-1.5 text-sm rounded-md border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] disabled:opacity-50 transition-colors"
-          >
-            {testing ? t.onboarding.testing : t.onboarding.test}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-3 py-1.5 text-sm rounded-md bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50 transition-colors"
-          >
-            {t.onboarding.save}
-          </button>
-          <div className="flex-1" />
-          <button onClick={onSkip} className="text-xs text-[var(--color-text-secondary)] hover:underline">
-            {t.onboarding.skip}
-          </button>
-          <button
-            onClick={() => setCurrentView("settings")}
-            className="text-xs text-[var(--color-text-secondary)] hover:underline"
-          >
-            {t.onboarding.advanced}
-          </button>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="primary" onClick={handleSave} disabled={saving}>
+              {saving ? t.settings.saving : t.onboarding.save}
+            </Button>
+            <Button variant="secondary" onClick={handleTest} disabled={testing}>
+              {testing ? t.onboarding.testing : t.onboarding.test}
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <Button variant="ghost" size="sm" onClick={onSkip}>
+              {t.onboarding.skip}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentView("settings")}
+            >
+              {t.onboarding.advanced}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

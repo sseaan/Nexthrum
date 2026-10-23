@@ -1,6 +1,22 @@
 const zh = {
   app: { title: "Nexthrum" },
 
+  window: {
+    minimize: "最小化",
+    maximize: "最大化",
+    restore: "向下还原",
+    close: "关闭",
+  },
+
+  appearance: {
+    title: "外观",
+    theme: "主题",
+    system: "跟随系统",
+    light: "白天",
+    dark: "深色",
+    hint: "主题只影响本机显示；选择「跟随系统」时将随 Windows 外观自动切换。",
+  },
+
   filter: {
     label: "按来源筛选",
     allApps: "全部应用",
@@ -14,6 +30,7 @@ const zh = {
     noTitle: "无标题",
     read: "已读",
     unread: "未读",
+    openSettings: "打开设置",
   },
 
   tray: {
@@ -72,27 +89,34 @@ const zh = {
 
   settings: {
     title: "设置",
-    back: "← 返回",
+    back: "返回",
     serverConnection: "服务器连接",
     serverUrl: "服务器地址",
     clientToken: "客户端令牌",
+    tokenHint: "令牌保存在 Windows 凭据管理器，不会写入设置文件。",
     testConnection: "测试连接",
-    testing: "测试中...",
+    testing: "测试中…",
     fillRequired: "请先填写服务器地址和客户端令牌",
     connected: "连接成功！Gotify 服务器版本：{version}",
-    general: "通用设置",
+    general: "启动与窗口",
     autoStart: "开机自启",
+    autoStartHint: "登录 Windows 后自动启动 Nexthrum 并保持后台连接。",
     startHidden: "启动时隐藏到托盘",
+    startHiddenHint: "启动后不显示主窗口，只在托盘显示图标。",
     minimizeToTray: "关闭窗口时隐藏到托盘",
+    minimizeToTrayHint: "关闭按钮只隐藏窗口；请从托盘菜单退出应用。",
     retention: "消息保留天数",
+    retentionHint: "超过该天数的本地消息会在后台定期清理。",
     dnd: "免打扰",
     dndHint: "在此时间段内不会弹出通知（消息仍会保存）",
     dndStart: "开始",
     dndEnd: "结束",
     dndTo: "至",
     save: "保存设置",
-    saving: "保存中...",
+    saving: "保存中…",
     saved: "设置已保存！",
+    savedButDisconnected: "设置已保存，但暂时无法连接到服务器：{error}",
+    saveFailed: "保存失败：{error}",
   },
 
   clearAll: {

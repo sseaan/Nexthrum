@@ -3,15 +3,14 @@ import { useAppStore } from "../../store/useAppStore";
 import { AppFilter } from "./AppFilter";
 import { MessageHeader } from "./MessageHeader";
 import { MessageList } from "./MessageList";
-import { SettingsWindow } from "../SettingsWindow/SettingsWindow";
 import { OnboardingView } from "../OnboardingWindow/OnboardingView";
 import { useMessageSearch } from "../../hooks/useMessageSearch";
 import { useUpdater } from "../../hooks/useUpdater";
 import { UpdateBanner } from "../common/UpdateBanner";
 import { initialUpdateStatus } from "../../utils/updateState";
 
+/** Message view. Page-level routing (messages vs settings) lives in App. */
 export function MessageWindow() {
-  const currentView = useAppStore((s) => s.currentView);
   const settings = useAppStore((s) => s.settings);
   const settingsLoaded = useAppStore((s) => s.settingsLoaded);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
@@ -21,10 +20,6 @@ export function MessageWindow() {
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const visibleUpdate =
     updateDismissed && updateStatus.kind === "available" ? initialUpdateStatus : updateStatus;
-
-  if (currentView === "settings") {
-    return <SettingsWindow />;
-  }
 
   // Avoid flashing the onboarding while the stored settings are still loading.
   if (!settingsLoaded) {
@@ -37,7 +32,7 @@ export function MessageWindow() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-bg)]">
+    <div className="flex h-full min-h-0 flex-col bg-[var(--color-bg)]">
       <UpdateBanner
         status={visibleUpdate}
         onInstall={() => void downloadAndInstall()}
@@ -46,7 +41,7 @@ export function MessageWindow() {
       />
       <MessageHeader />
       {searchQuery.trim() === "" && <AppFilter />}
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <MessageList />
       </div>
     </div>
