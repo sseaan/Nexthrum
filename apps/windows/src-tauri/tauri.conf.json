@@ -18,7 +18,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -30,12 +32,15 @@
       "nsis": {
         "installMode": "currentUser"
       }
-    }
+    },
+    "createUpdaterArtifacts": true
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI2MzgxQjhCM0NGMThCNkYKUldSdmkvRThpeHM0Sm5NbmpBczRrNzBLeXdyMFRWQzI4Mk4vZ1ZRRHVtM0RVOVlKZE91Ujg1WkwK",
-      "endpoints": []
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNCODZGNjAzOTJFNTU3MTUKUldRVlYrV1NBL2FHTzhJZTVraUYrQXE1QlFMKzFUWS9VVUFneDJUVzZvdGFTMnI0VjBQaHNWN0IK",
+      "endpoints": [
+        "https://github.com/sseaan/Nexthrum/releases/latest/download/latest.json"
+      ]
     }
   }
 }

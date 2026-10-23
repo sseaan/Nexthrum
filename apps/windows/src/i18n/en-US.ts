@@ -29,6 +29,17 @@ const en = {
     noMatches: "No message matches"
   },
 
+  update: {
+    "available": "Version {version} is available",
+    "downloading": "Downloading {version}…",
+    "downloadingPercent": "Downloading {version}… {percent}%",
+    "ready": "Update downloaded — restart to finish",
+    "failed": "Update failed, please try again later",
+    "install": "Download update",
+    "restart": "Restart now",
+    "dismiss": "Later"
+  },
+
   header: {
     title: "Messages",
     unread: "{n} unread",

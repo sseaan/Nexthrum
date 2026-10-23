@@ -97,12 +97,17 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 
 ## 4. 更新策略
 
-**当前：手动更新**。应用不包含自动更新能力：
+**已接入 `tauri-plugin-updater`（Windows）**，走 GitHub Releases：
 
-- `tauri.conf.json` 里保留了 `plugins.updater` 的 `pubkey` 占位，但 **`tauri-plugin-updater` 并未作为依赖接入**，`endpoints` 为空，因此该配置当前无效。
-- 发布说明需明确“请下载新版本覆盖安装”。
+- 清单：`https://github.com/sseaan/Nexthrum/releases/latest/download/latest.json`（`tauri-action` 在打 tag 时自动生成并上传）
+- 签名：更新包用 minisign 私钥签名，应用用 `tauri.conf.json` 里的公钥校验；**签名与操作系统代码签名无关**，未做 Authenticode 也能安全更新
+- 私钥位置：`~/.tauri/nexthrum-updater.key`（本机备份），CI 里为 `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 两个 secret
+- 应用启动约 4 秒后检查一次；发现新版本显示非阻塞横幅，可「下载更新 → 立即重启」，也可「暂不更新」
+- 失败（离线、清单缺失）静默回到 idle，不影响使用
 
-若后续引入自动更新，需要：接入 `tauri-plugin-updater`、托管签名后的更新清单（`latest.json`）、配置 endpoint、确保私钥离线保存，并在 UI 中提供更新提示与失败回退。
+**轮换密钥**：`npx tauri signer generate -w ~/.tauri/nexthrum-updater.key` → 更新 `tauri.conf.json` 的 `plugins.updater.pubkey` → 重新设置上面两个 secret。已发布版本的旧签名会失效，需要发一个新版本让用户过渡。
+
+**macOS**：updater 目前只配置给 Windows；macOS 仍是手动更新（见 3.1）。
 
 ## 5. 发布前检查清单
 

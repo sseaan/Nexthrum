@@ -28,6 +28,17 @@ const zh = {
     noMatches: "没有匹配的消息"
   },
 
+  update: {
+    "available": "发现新版本 {version}",
+    "downloading": "正在下载 {version}…",
+    "downloadingPercent": "正在下载 {version}… {percent}%",
+    "ready": "新版本已下载，重启即可完成更新",
+    "failed": "更新失败，请稍后重试",
+    "install": "下载更新",
+    "restart": "立即重启",
+    "dismiss": "暂不更新"
+  },
+
   header: {
     title: "消息",
     unread: "{n} 条未读",

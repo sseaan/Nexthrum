@@ -6,6 +6,9 @@ import { MessageList } from "./MessageList";
 import { SettingsWindow } from "../SettingsWindow/SettingsWindow";
 import { OnboardingView } from "../OnboardingWindow/OnboardingView";
 import { useMessageSearch } from "../../hooks/useMessageSearch";
+import { useUpdater } from "../../hooks/useUpdater";
+import { UpdateBanner } from "../common/UpdateBanner";
+import { initialUpdateStatus } from "../../utils/updateState";
 
 export function MessageWindow() {
   const currentView = useAppStore((s) => s.currentView);
@@ -14,6 +17,10 @@ export function MessageWindow() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const searchQuery = useAppStore((s) => s.searchQuery);
   useMessageSearch();
+  const { status: updateStatus, downloadAndInstall, restart } = useUpdater();
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+  const visibleUpdate =
+    updateDismissed && updateStatus.kind === "available" ? initialUpdateStatus : updateStatus;
 
   if (currentView === "settings") {
     return <SettingsWindow />;
@@ -31,6 +38,12 @@ export function MessageWindow() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-bg)]">
+      <UpdateBanner
+        status={visibleUpdate}
+        onInstall={() => void downloadAndInstall()}
+        onRestart={() => void restart()}
+        onDismiss={() => setUpdateDismissed(true)}
+      />
       <MessageHeader />
       {searchQuery.trim() === "" && <AppFilter />}
       <div className="flex-1 overflow-hidden">
