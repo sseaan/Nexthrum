@@ -7,6 +7,7 @@ import type { GotifyMessage } from "../types";
  * Hook to listen for Tauri backend events:
  * - new-message: A new message arrived from Gotify
  * - unread-count-changed: The unread count was updated
+ * - connection-state-changed / connection-error: stream status
  * - show-settings: User clicked "Settings" in tray menu
  */
 export function useTauriEvents() {
@@ -45,7 +46,6 @@ export function useTauriEvents() {
         }),
         listen<string>("connection-error", (event) => setConnectionError(event.payload)),
         listen<void>("show-settings", () => setCurrentView("settings")),
-        listen<number>("notification-clicked", () => {}),
       ]);
       if (!active) {
         registered.forEach((unlisten) => unlisten());

@@ -20,6 +20,12 @@ pub struct AppState {
     pub message_update: Arc<Mutex<()>>,
 }
 
+/// Publish the authoritative unread count to the UI and the tray icon.
+pub fn emit_unread(app: &tauri::AppHandle, unread: i64) {
+    let _ = app.emit("unread-count-changed", unread);
+    tray::update_unread(app, unread);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     rustls::crypto::ring::default_provider()
@@ -82,6 +88,11 @@ pub fn run() {
             let tray = tray::build_tray(app.handle())?;
             app.manage(tray);
 
+            // Seed the tray badge before any message arrives.
+            if let Ok(unread) = nexthrum_storage::get_unread_count(&storage_paths) {
+                tray::update_unread(app.handle(), unread);
+            }
+
             // Reconcile the OS autostart entry with the persisted preference.
             let autostart_handle = app.handle().clone();
             let autostart_enabled = settings.auto_start;
@@ -106,7 +117,7 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 let _ = nexthrum_storage::cleanup_old_messages(&paths, &settings_clone);
                 let unread = nexthrum_storage::get_unread_count(&paths).unwrap_or(0);
-                let _ = handle.emit("unread-count-changed", unread);
+                emit_unread(&handle, unread);
             });
 
             let handle_clone = app.handle().clone();
@@ -123,7 +134,7 @@ pub fn run() {
                     };
                     let _ = nexthrum_storage::cleanup_old_messages(&paths, &snapshot);
                     let unread = nexthrum_storage::get_unread_count(&paths).unwrap_or(0);
-                    let _ = handle_clone.emit("unread-count-changed", unread);
+                    emit_unread(&handle_clone, unread);
                 }
             });
             Ok(())

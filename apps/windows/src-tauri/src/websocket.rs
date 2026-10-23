@@ -120,7 +120,7 @@ async fn handle_incoming_message(app_handle: &AppHandle, msg: GotifyMessage) {
     };
 
     let _ = app_handle.emit("new-message", &result.message);
-    let _ = app_handle.emit("unread-count-changed", result.unread_count);
+    crate::emit_unread(app_handle, result.unread_count);
     if !result.should_notify {
         log::debug!(
             "In DND period, saved message {} without notification",

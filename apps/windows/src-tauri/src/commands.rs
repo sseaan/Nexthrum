@@ -82,7 +82,7 @@ pub async fn mark_message_read(
     };
     let snapshot =
         nexthrum_core::message_service::mark_message_read_snapshot(&mut repository, message_id)?;
-    let _ = app_handle.emit("unread-count-changed", snapshot.unread_count);
+    crate::emit_unread(&app_handle, snapshot.unread_count);
     Ok(snapshot)
 }
 
@@ -98,7 +98,7 @@ pub async fn delete_message(
     };
     let snapshot =
         nexthrum_core::message_service::delete_message_snapshot(&mut repository, message_id)?;
-    let _ = app_handle.emit("unread-count-changed", snapshot.unread_count);
+    crate::emit_unread(&app_handle, snapshot.unread_count);
     Ok(snapshot)
 }
 
@@ -121,7 +121,7 @@ pub async fn clear_messages(
         paths: state.storage_paths.clone(),
     };
     let snapshot = nexthrum_core::message_service::clear_messages_snapshot(&mut repository)?;
-    let _ = app_handle.emit("unread-count-changed", snapshot.unread_count);
+    crate::emit_unread(&app_handle, snapshot.unread_count);
     Ok(snapshot)
 }
 

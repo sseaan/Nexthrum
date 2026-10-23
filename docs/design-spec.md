@@ -11,6 +11,7 @@
 - Windows 连接状态 UI 展示 disconnected/connecting/connected 三态，connecting 使用动效但同时提供可访问文本，状态仅由后端状态事件驱动。
 - 设置：Gotify 服务器/令牌、连接测试、启动与窗口行为、保留天数、DND 时段。
 - 常驻入口：Windows 托盘；macOS 菜单栏入口，包含打开消息、设置和退出。
+- Windows 托盘在有未读时显示右上角红点，并通过 tooltip 显示「Nexthrum — N 条未读」；计数来源于后端权威快照（每次 `unread-count-changed` 同步刷新）。
 
 ## 3. 消息列表与状态
 
