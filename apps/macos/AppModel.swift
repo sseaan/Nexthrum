@@ -35,6 +35,9 @@ final class AppModel: ObservableObject {
     @Published var storageMessage: String?
     @Published var showsClearConfirmation = false
     @Published var pendingMessageID: Int64?
+    /// Incremented when a caller wants the window to show the Settings pane.
+    /// Using state keeps navigation working on SDKs without `openSettings`.
+    @Published private(set) var settingsRequestToken = 0
     /// True once settings were loaded from disk, so first-run onboarding only
     /// appears for genuinely unconfigured installs.
     @Published private(set) var hasStoredSettings = false
@@ -354,6 +357,10 @@ final class AppModel: ObservableObject {
         pendingMessageID = id
         markRead(id)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func requestSettings() {
+        settingsRequestToken += 1
     }
 
     func clearPendingMessageNavigation() {

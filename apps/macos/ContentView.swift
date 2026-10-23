@@ -10,7 +10,6 @@ enum SidebarItem: Hashable {
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
-    @Environment(\.openSettings) private var openSettings
     @State private var selection: SidebarItem = .messages
     /// The first-run guide can be dismissed to browse (empty) messages.
     @State private var onboardingDismissed = false
@@ -75,6 +74,9 @@ struct ContentView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .onChange(of: model.settingsRequestToken) { _, _ in
+            selection = .settings
+        }
         .confirmationDialog(
             "Clear all local messages?",
             isPresented: $model.showsClearConfirmation,
@@ -116,7 +118,7 @@ struct ContentView: View {
                     .disabled(model.connectionStatus == .connecting)
                 }
                 Button {
-                    openSettings()
+                    model.requestSettings()
                 } label: {
                     Label("Settings", systemImage: "gearshape")
                 }
@@ -190,7 +192,6 @@ struct ContentView: View {
             if !model.isConfigured {
                 Button("Open Settings…") {
                     selection = .settings
-                    openSettings()
                 }
             }
         }

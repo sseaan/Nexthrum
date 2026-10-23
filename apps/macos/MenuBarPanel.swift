@@ -8,7 +8,6 @@ import SwiftUI
 struct MenuBarPanel: View {
     @ObservedObject var model: AppModel
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.openSettings) private var openSettings
 
     private var recentMessages: [MacMessage] {
         Array(model.messages.prefix(3))
@@ -100,7 +99,8 @@ struct MenuBarPanel: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Button("Settings…") {
-                openSettings()
+                model.requestSettings()
+                openWindow(id: "messages")
                 NSApp.activate(ignoringOtherApps: true)
             }
             .buttonStyle(.plain)

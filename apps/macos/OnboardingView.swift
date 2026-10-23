@@ -4,7 +4,6 @@ import SwiftUI
 /// are configured, so a fresh install explains what to enter and where to find it.
 struct OnboardingView: View {
     @EnvironmentObject private var model: AppModel
-    @Environment(\.openSettings) private var openSettings
     var onSkip: () -> Void = {}
 
     @State private var showTokenField = false
@@ -135,7 +134,7 @@ struct OnboardingView: View {
                 .buttonStyle(.link)
                 .font(.callout)
 
-            Button("Advanced…") { openSettings() }
+            Button("Advanced…") { model.requestSettings() }
                 .buttonStyle(.link)
                 .font(.callout)
         }
