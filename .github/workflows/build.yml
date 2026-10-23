@@ -143,7 +143,8 @@ jobs:
             $(security list-keychains -d user | tr -d '"')
 
           # codesign only lists identities that are trusted for code signing.
-          openssl pkcs12 -in "$P12" -legacy -nokeys \
+          # macOS ships LibreSSL, whose pkcs12 has no -legacy flag.
+          openssl pkcs12 -in "$P12" -nokeys \
             -passin pass:"$MACOS_SIGNING_CERT_PASSWORD" -out "$RUNNER_TEMP/cert.pem"
           security add-trusted-cert -r trustRoot -p codeSign -k "$KEYCHAIN" "$RUNNER_TEMP/cert.pem"
 
