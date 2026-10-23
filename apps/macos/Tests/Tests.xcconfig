@@ -1,0 +1,18 @@
+ARCHS = arm64
+ONLY_ACTIVE_ARCH = YES
+MACOSX_DEPLOYMENT_TARGET = 14.0
+SDKROOT = macosx
+ALWAYS_SEARCH_USER_PATHS = NO
+SWIFT_INCLUDE_PATHS = $(SRCROOT)/Generated
+OTHER_SWIFT_FLAGS = $(inherited) -Xcc -fmodule-map-file=$(SRCROOT)/Generated/nexthrum_ffiFFI.modulemap
+MODULEMAP_FILE = Generated/nexthrum_ffiFFI.modulemap
+SWIFT_VERSION = 5.0
+CODE_SIGNING_ALLOWED = NO
+GENERATE_INFOPLIST_FILE = YES
+PRODUCT_BUNDLE_IDENTIFIER = com.nexthrum.app.tests
+PRODUCT_NAME = NexthrumMacTests
+TEST_HOST =
+BUNDLE_LOADER =
+LIBRARY_SEARCH_PATHS = $(inherited) $(SRCROOT)/../../target/debug/deps
+OTHER_LDFLAGS = $(inherited) -lnexthrum_ffi
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @loader_path/../Frameworks

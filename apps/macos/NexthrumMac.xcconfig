@@ -1,0 +1,19 @@
+// Shared macOS app configuration. Deliberately Apple Silicon only.
+ARCHS = arm64
+ONLY_ACTIVE_ARCH = YES
+MACOSX_DEPLOYMENT_TARGET = 14.0
+SDKROOT = macosx
+ALWAYS_SEARCH_USER_PATHS = NO
+
+CODE_SIGNING_ALLOWED = NO
+GENERATE_INFOPLIST_FILE = NO
+INFOPLIST_FILE = $(SRCROOT)/Info.plist
+PRODUCT_BUNDLE_IDENTIFIER = com.nexthrum.app
+PRODUCT_NAME = NexthrumMac
+SWIFT_VERSION = 5.0
+
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks
+LIBRARY_SEARCH_PATHS = $(inherited) $(SRCROOT)/../../target/debug/deps
+MODULEMAP_FILE = Generated/nexthrum_ffiFFI.modulemap
+OTHER_SWIFT_FLAGS = $(inherited) -Xcc -fmodule-map-file=$(SRCROOT)/Generated/nexthrum_ffiFFI.modulemap
+SWIFT_INCLUDE_PATHS = $(SRCROOT)/Generated
