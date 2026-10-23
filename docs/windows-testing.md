@@ -259,16 +259,46 @@ Get-NetTCPConnection -LocalPort 1430 -State Listen -ErrorAction SilentlyContinue
 老系统没有 `Get-NetTCPConnection` 时：`netstat -ano | findstr :1430` 取最后一列 PID，
 再 `taskkill /PID <PID> /F`。
 
-#### 换端口（不需要管理员权限，推荐）
+#### 一键换端口（推荐）
 
-同时修改这两处，值必须一致；如果用到跨设备 HMR，`hmr.port` 也顺带改：
+仓库自带脚本会读取系统保留段与动态端口段，挑一个真正可绑定的端口，并把两处配置同时改写：
 
-| 文件 | 字段 |
+```powershell
+# 只报告，不改文件
+powershell -ExecutionPolicy Bypass -File scripts/dev-port.ps1 -DryRun
+
+# 选定并写入 vite.config.ts + tauri.conf.json
+powershell -ExecutionPolicy Bypass -File scripts/dev-port.ps1
+
+# 指定端口（脚本会校验是否被系统保留或占用）
+powershell -ExecutionPolicy Bypass -File scripts/dev-port.ps1 -Port 1620
+```
+
+输出示例：
+
+```text
+Reserved (Hyper-V / WinNAT):
+  1336-1435
+Dynamic range: 49152-65535
+Chosen dev port: 1520 (HMR 1521)
+Updated:
+  apps/windows/vite.config.ts            -> const DEV_PORT = 1520;
+  apps/windows/src-tauri/tauri.conf.json -> http://localhost:1520
+```
+
+脚本会改写两个受版本控制的文件，撤销：`git checkout -- apps/windows/vite.config.ts apps/windows/src-tauri/tauri.conf.json`。
+
+#### 手动换端口（无需管理员权限）
+
+`vite.config.ts` 顶部只有一个常量 `DEV_PORT`，`hmr.port` 自动取 `DEV_PORT + 1`，所以手动改也只需两处：
+
+| 文件 | 改什么 |
 |---|---|
-| `apps/windows/vite.config.ts` | `server.port`（以及 `server.hmr.port`） |
-| `apps/windows/src-tauri/tauri.conf.json` | `build.devUrl` |
+| `apps/windows/vite.config.ts` | `const DEV_PORT = <端口>;` |
+| `apps/windows/src-tauri/tauri.conf.json` | `build.devUrl` 里的端口 |
 
-选端口前先跑一次 `netsh int ipv4 show excludedportrange protocol=tcp`，避开列表中的所有区间。
+选端口前先跑 `netsh int ipv4 show excludedportrange protocol=tcp`，避开所有列出区间
+（实测某台 Win11 上 1336–1435 整段被 Hyper-V 划走，原来的 1420/1430 都在里面）。
 
 #### 永久保留端口（需要管理员 PowerShell）
 
