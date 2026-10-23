@@ -205,11 +205,43 @@ dir "$env:APPDATA\Nexthrum\nexthrum_messages.db"
 
 ## 8. 常见问题
 
+### 8.1 窗口完全空白（优先排查）
+
+先用**空白区域的背景色**判断问题层级：
+
+| 看到的画面 | 含义 | 下一步 |
+|---|---|---|
+| 深蓝底（`#0f1724`）且无任何文字 | 前端脚本已加载，但 React 未挂载或抛错 | `Ctrl + Shift + I` 看 Console |
+| 深蓝底 + 「正在加载 Nexthrum…」文字 | 前端资源根本没加载（Vite 未启动或端口不通） | 看终端与下表的连接类问题 |
+| 纯白 / 纯黑，无任何内容 | WebView2 未渲染页面（运行时缺失或进程被杀） | 确认 WebView2 运行时，重启应用 |
+| 深蓝底 + 「界面启动失败 / 界面未能启动」+ 堆栈 | 已捕获到具体错误 | 直接截图堆栈反馈 |
+
+分层定位最快的一步：**绕过 Tauri，直接用浏览器验证前端**。
+
+```powershell
+cd apps\windows
+npm run dev
+```
+
+然后在 Edge/Chrome 打开 `http://localhost:1420`：
+
+- 浏览器能正常显示界面 → 前端没问题，问题在 Tauri 窗口或 WebView2（继续看 8.2）
+- 浏览器也空白 → 前端运行时错误，浏览器 Console 会直接给出文件和行号
+
+### 8.2 连接与端口类
+
+| 现象 | 处理 |
+|---|---|
+| Console 报 `ERR_CONNECTION_REFUSED` / `Failed to load resource` | Vite 没起来或端口不对：`Get-NetTCPConnection -LocalPort 1420` 查占用，结束残留 node 进程后重跑 |
+| 终端提示 `Port 1420 is already in use`（`strictPort`） | 同上；关掉之前的 `tauri dev` / `npm run dev` 遗留进程 |
+| 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `apps/windows/vite.config.ts` 的 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `src-tauri/tauri.conf.json` 的 `devUrl` 改成 `http://127.0.0.1:1420` |
+| WebView2 缺失 | `winget install Microsoft.EdgeWebView2Runtime` |
+
+### 8.3 构建与环境类
+
 | 现象 | 处理 |
 |---|---|
 | `error: linker 'link.exe' not found` | 缺 VS C++ Build Tools，或未安装「使用 C++ 的桌面开发」工作负载 |
-| 端口 1420 被占（`strictPort` 直接失败） | `Get-NetTCPConnection -LocalPort 1420`，结束残留的 node 进程 |
-| 窗口全白 | 前端未起（vite 起不来）；看 `beforeDevCommand` 输出 |
 | 改了 Rust 不生效 | 删对应 crate 的 `target` 产物重编译 |
 | 想回到「首次运行」状态 | 退出应用，删 `%APPDATA%\Nexthrum\`，再删凭据管理器里的 `Nexthrum/GotifyClientToken` |
 | 中文字体发虚 | 记录缩放比例与截图，通常是 WebView2 缩放或字体回退问题 |

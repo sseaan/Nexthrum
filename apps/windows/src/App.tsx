@@ -67,7 +67,10 @@ function App() {
   }, [listenersReady, setSettings, setMessages, setUnreadCount, setAppNames, setSettingsLoaded]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
+    <div
+      data-app-mounted
+      className="flex h-full flex-col overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]"
+    >
       <TitleBar />
       <div className="flex-1 overflow-hidden">
         {currentView === "settings" ? <SettingsWindow /> : <MessageWindow />}

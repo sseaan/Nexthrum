@@ -5,9 +5,61 @@
         <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Nexthrum</title>
+        <style>
+            /*
+             * Bootstrap fallback: React replaces this markup on mount. If the
+             * dev server or the bundle never loads, the window still shows a
+             * readable hint instead of a blank surface.
+             */
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                background: #0f1724;
+                color: #a4b3c8;
+                font-family: system-ui, "Segoe UI", "Microsoft YaHei UI", sans-serif;
+            }
+            #root {
+                height: 100%;
+            }
+            .boot-fallback {
+                display: flex;
+                height: 100%;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 24px;
+                text-align: center;
+            }
+            .boot-fallback strong {
+                color: #e8f0fb;
+                font-size: 14px;
+                font-weight: 600;
+            }
+            .boot-fallback span {
+                max-width: 34rem;
+                font-size: 12px;
+                line-height: 1.6;
+            }
+            .boot-fallback code {
+                font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+                font-size: 11px;
+                color: #74849b;
+            }
+        </style>
     </head>
     <body>
-        <div id="root"></div>
+        <div id="root">
+            <div class="boot-fallback">
+                <strong>正在加载 Nexthrum…</strong>
+                <span>
+                    如果这一行文字一直存在，说明前端资源没有加载成功。请检查终端里
+                    Vite 是否已启动在 <code>http://localhost:1420</code>，并按
+                    <code>Ctrl + Shift + I</code> 查看 Console 报错。
+                </span>
+            </div>
+        </div>
         <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>
