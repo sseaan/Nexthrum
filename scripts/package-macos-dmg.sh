@@ -26,7 +26,7 @@ fi
 
 VERSION="${1:-$(node -p "require('./apps/windows/package.json').version")}"
 OUT="$ROOT/target/macos-dmg"
-APP="$OUT/Build/Products/Release/NexthrumMac.app"
+APP="$OUT/Build/Products/Release/Nexthrum.app"
 DMG="$OUT/Nexthrum-${VERSION}-arm64.dmg"
 
 rm -rf "$OUT"
@@ -47,8 +47,8 @@ else
   echo "==> Building Release app (signed with: $SIGN_IDENTITY)"
 fi
 xcodebuild \
-  -project apps/macos/NexthrumMac.xcodeproj \
-  -scheme NexthrumMac \
+  -project apps/macos/Nexthrum.xcodeproj \
+  -scheme Nexthrum \
   -configuration Release \
   -sdk macosx \
   -derivedDataPath "$OUT" \
@@ -94,5 +94,5 @@ echo
 echo "Distribution notes (no Apple Developer account):"
 echo "  - The app is ad-hoc signed, NOT notarized. Gatekeeper will warn recipients."
 echo "  - Install: open the DMG, drag Nexthrum to Applications, then right-click -> Open."
-echo "  - Or clear the quarantine flag: xattr -dr com.apple.quarantine /Applications/NexthrumMac.app"
+echo "  - Or clear the quarantine flag: xattr -dr com.apple.quarantine /Applications/Nexthrum.app"
 echo "  - For notarized builds see docs/release.md (requires a paid Developer ID)."

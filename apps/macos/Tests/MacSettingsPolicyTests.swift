@@ -87,13 +87,13 @@ final class LaunchAtLoginDescriptionTests: XCTestCase {
 
     func testApplicationsHintIsOnlyShownForBundlesOutsideApplications() {
         XCTAssertTrue(LaunchAtLoginPresentation.needsApplicationsHint(
-            bundlePath: "/Users/someone/Downloads/NexthrumMac.app"
+            bundlePath: "/Users/someone/Downloads/Nexthrum.app"
         ))
         XCTAssertTrue(LaunchAtLoginPresentation.needsApplicationsHint(
-            bundlePath: "/Volumes/Nexthrum/NexthrumMac.app"
+            bundlePath: "/Volumes/Nexthrum/Nexthrum.app"
         ))
         XCTAssertFalse(LaunchAtLoginPresentation.needsApplicationsHint(
-            bundlePath: "/Applications/NexthrumMac.app"
+            bundlePath: "/Applications/Nexthrum.app"
         ))
     }
 

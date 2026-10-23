@@ -3,28 +3,28 @@
    <BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES">
       <BuildActionEntries>
          <BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">
-            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="NexthrumMac.app" BlueprintName="NexthrumMac" ReferencedContainer="container:NexthrumMac.xcodeproj"/>
+            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="Nexthrum.app" BlueprintName="Nexthrum" ReferencedContainer="container:Nexthrum.xcodeproj"/>
          </BuildActionEntry>
          <BuildActionEntry buildForTesting="YES" buildForRunning="NO" buildForProfiling="NO" buildForArchiving="NO" buildForAnalyzing="YES">
-            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000003" BuildableName="NexthrumMacTests.xctest" BlueprintName="NexthrumMacTests" ReferencedContainer="container:NexthrumMac.xcodeproj"/>
+            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000003" BuildableName="NexthrumTests.xctest" BlueprintName="NexthrumTests" ReferencedContainer="container:Nexthrum.xcodeproj"/>
          </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger" selectedLauncherIdentifier="Xcode.DebuggerFoundation.Launcher" shouldUseLaunchSchemeArgsEnv="YES">
       <Testables>
          <TestableReference skipped="NO" parallelizable="YES">
-            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000003" BuildableName="NexthrumMacTests.xctest" BlueprintName="NexthrumMacTests" ReferencedContainer="container:NexthrumMac.xcodeproj"/>
+            <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000003" BuildableName="NexthrumTests.xctest" BlueprintName="NexthrumTests" ReferencedContainer="container:Nexthrum.xcodeproj"/>
          </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.Debugger.Debugger" selectedLauncherIdentifier="Xcode.DebuggerFoundation.Launcher" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" debugServiceExtension="internal" allowLocationSimulation="YES">
       <BuildableProductRunnable runnableDebuggingMode="0">
-         <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="NexthrumMac.app" BlueprintName="NexthrumMac" ReferencedContainer="container:NexthrumMac.xcodeproj"/>
+         <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="Nexthrum.app" BlueprintName="Nexthrum" ReferencedContainer="container:Nexthrum.xcodeproj"/>
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES">
       <BuildableProductRunnable runnableDebuggingMode="0">
-         <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="NexthrumMac.app" BlueprintName="NexthrumMac" ReferencedContainer="container:NexthrumMac.xcodeproj"/>
+         <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="F10000000000000000000001" BuildableName="Nexthrum.app" BlueprintName="Nexthrum" ReferencedContainer="container:Nexthrum.xcodeproj"/>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction buildConfiguration="Debug"/>

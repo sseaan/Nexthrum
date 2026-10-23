@@ -33,16 +33,16 @@ xcrun swiftc \
   apps/macos/AppModel.swift \
   apps/macos/ContentView.swift \
   apps/macos/SettingsView.swift \
-  apps/macos/NexthrumMacApp.swift \
+  apps/macos/NexthrumApp.swift \
   -L target/debug/deps -lnexthrum_ffi \
   -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
   -framework SwiftUI -framework AppKit -framework Security \
-  -o "$MACOS/NexthrumMac"
+  -o "$MACOS/Nexthrum"
 
 install_name_tool \
   -change "$ROOT/target/debug/deps/libnexthrum_ffi.dylib" \
   @rpath/libnexthrum_ffi.dylib \
-  "$MACOS/NexthrumMac"
+  "$MACOS/Nexthrum"
 
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Contents/Info.plist" >/dev/null
 codesign --force --deep --sign - "$APP_PATH"

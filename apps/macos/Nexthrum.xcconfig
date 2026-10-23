@@ -9,7 +9,7 @@ CODE_SIGNING_ALLOWED = NO
 GENERATE_INFOPLIST_FILE = NO
 INFOPLIST_FILE = $(SRCROOT)/Info.plist
 PRODUCT_BUNDLE_IDENTIFIER = com.nexthrum.app
-PRODUCT_NAME = NexthrumMac
+PRODUCT_NAME = Nexthrum
 SWIFT_VERSION = 5.0
 
 LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks

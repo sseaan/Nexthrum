@@ -10,7 +10,7 @@
         <string>zh-Hans</string>
     </array>
     <key>CFBundleExecutable</key>
-    <string>NexthrumMac</string>
+    <string>Nexthrum</string>
     <key>CFBundleIdentifier</key>
     <string>com.nexthrum.app</string>
     <key>CFBundleInfoDictionaryVersion</key>

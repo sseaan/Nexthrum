@@ -20,13 +20,13 @@ The generated files are in `Generated/`:
 
 ## Xcode project build
 
-A shared `NexthrumMac.xcodeproj` and `NexthrumMac` scheme now build the app target. Run:
+A shared `Nexthrum.xcodeproj` and `Nexthrum` scheme now build the app target. Run:
 
 ```bash
 scripts/build-macos-xcode.sh
 ```
 
-The shared `NexthrumMac.xcconfig` is the single source for target architecture and Swift/linker settings. The Xcode build phase builds the Rust FFI crate and regenerates UniFFI bindings; the wrapper validates the resulting arm64 executable, embedded dylib, `@rpath`, and Info.plist. Output is `target/xcode-derived/Build/Products/Debug/NexthrumMac.app`.
+The shared `Nexthrum.xcconfig` is the single source for target architecture and Swift/linker settings. The Xcode build phase builds the Rust FFI crate and regenerates UniFFI bindings; the wrapper validates the resulting arm64 executable, embedded dylib, `@rpath`, and Info.plist. Output is `target/xcode-derived/Build/Products/Debug/Nexthrum.app`.
 
 The Xcode project intentionally targets Apple Silicon arm64 only; Intel/x86_64 and universal binaries are out of scope. The current deployment target is macOS 14.0.
 
@@ -37,7 +37,7 @@ The first slice validates settings through `BridgeService`, tests the Gotify `/v
 Notification delivery uses `MacNotificationPolicy` to require both Core's `should_notify` decision and an authorized/provisional/ephemeral system status. Notification authorization and click-to-message-ID parsing have an Xcode unit test target; run it with:
 
 ```bash
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
 ```
 
 Actual notification delivery requires granting permission in macOS System Settings.

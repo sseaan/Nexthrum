@@ -14,8 +14,8 @@ SDK_PATH="$(xcrun --sdk macosx --show-sdk-path)"
 OUT="${DERIVED_DATA_PATH:-$ROOT/target/xcode-derived}"
 
 xcodebuild \
-  -project apps/macos/NexthrumMac.xcodeproj \
-  -scheme NexthrumMac \
+  -project apps/macos/Nexthrum.xcodeproj \
+  -scheme Nexthrum \
   -configuration Debug \
   -sdk macosx \
   -derivedDataPath "$OUT" \
@@ -24,8 +24,8 @@ xcodebuild \
   SDKROOT="$SDK_PATH" \
   build
 
-APP="$OUT/Build/Products/Debug/NexthrumMac.app"
-EXECUTABLE="$APP/Contents/MacOS/NexthrumMac"
+APP="$OUT/Build/Products/Debug/Nexthrum.app"
+EXECUTABLE="$APP/Contents/MacOS/Nexthrum"
 EMBEDDED_FFI="$APP/Contents/Frameworks/libnexthrum_ffi.dylib"
 
 if [[ ! -x "$EXECUTABLE" ]]; then

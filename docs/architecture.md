@@ -53,7 +53,7 @@ Tauri platform adapter                      macOS platform adapter
 - UniFFI 生成的 `localizedDescription` 只暴露枚举名，因此 macOS 用 `BridgeErrorMessage.swift` 的 `userMessage(for:)` 映射为可操作文案（如令牌被拒提示检查 token、TLS 失败提示证书），并由 XCTest 保证每个枚举都有独立文案且不泄露原始 case 名。
 ### macOS adapter
 - SwiftUI 消息列表已接入共享 storage bridge：显示未读数，支持标记已读、单条本地删除及带二次确认的本地清空；清空提示明确说明不删除服务器消息。
-- `apps/macos/NexthrumMac.xcodeproj` 已建立共享 scheme；build phase 生成 Swift bindings 并构建 Rust dylib，Xcode target 编译 SwiftUI、嵌入 dylib，`scripts/build-macos-xcode.sh` 的 `xcodebuild build` 已通过并运行验证。目前仅 arm64，正式签名、公证、Universal binary 尚待完成。
+- `apps/macos/Nexthrum.xcodeproj` 已建立共享 scheme；build phase 生成 Swift bindings 并构建 Rust dylib，Xcode target 编译 SwiftUI、嵌入 dylib，`scripts/build-macos-xcode.sh` 的 `xcodebuild build` 已通过并运行验证。目前仅 arm64，正式签名、公证、Universal binary 尚待完成。
 - macOS `MacNotificationService` 使用 `UNUserNotificationCenter` 管理授权状态和发送通知。`MacNotificationPolicy` 独立于系统 API，强制检查 Core `should_notify` 和授权状态，并解析点击通知中的 message ID；点击后激活应用、定位消息并标记已读。Xcode unit tests 覆盖策略门控、授权分类与 ID 解析。
 - macOS 凭据读取失败会作为设置加载错误呈现，不再静默当成“未配置”。`CredentialSettingsTransaction` 将 Keychain 写入与 Rust 设置保存串成事务；设置保存失败时回滚旧 token，回滚失败时错误明确包含两阶段失败信息，表单恢复旧设置并尝试恢复旧连接。
 - Xcode 单元测试用注入的 in-memory closures 覆盖事务成功与设置保存失败时的旧凭据恢复；不读取或修改真实 Keychain。
@@ -66,7 +66,7 @@ Tauri platform adapter                      macOS platform adapter
 
 macOS 保留 `KeychainCredentialStore` 与 `CredentialSettingsTransaction` 的同等语义。
 - macOS `BridgeSettings` 持久化 auto-start intent；Settings 使用 `SMAppService.mainApp` 同步注册状态并区分 Enabled、Approval required、Disabled/Unavailable。启动项操作失败单独反馈，不回滚已保存的服务器配置或凭据。
-- macOS `NexthrumMacApp` 提供 `MenuBarExtra` 入口：打开消息窗口、打开设置、明确退出；Dock 主窗口关闭后应用及 Gotify 后台连接继续运行。
+- macOS `NexthrumApp` 提供 `MenuBarExtra` 入口：打开消息窗口、打开设置、明确退出；Dock 主窗口关闭后应用及 Gotify 后台连接继续运行。
 - 通知点击通过共享 AppModel 状态重新打开并激活消息窗口，然后滚动至目标消息；标准 About 面板由 AppKit 提供。
 - UI 仅从携带权威未读快照的事件刷新计数（初始 connecting、消息或错误）；connected/disconnected 状态事件无计数，不得将 badge 清零。
 - Swift bridge 只使用稳定 DTO/用例接口，不接触内部 Rust 模型或 SQLite。

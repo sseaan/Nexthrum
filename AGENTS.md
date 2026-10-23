@@ -75,7 +75,7 @@ macOS 相关改动还要：
 scripts/generate-swift-bindings.sh
 swiftc -parse apps/macos/Generated/nexthrum_ffi.swift apps/macos/AppModel.swift
 scripts/build-macos-xcode.sh          # arm64 app + @rpath + plist 校验
-xcodebuild -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac \
+xcodebuild -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum \
   -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
 ```
 

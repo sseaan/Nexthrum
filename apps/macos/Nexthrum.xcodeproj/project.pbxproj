@@ -56,7 +56,7 @@
 		A00000000000000000000040 = {isa = PBXBuildFile; fileRef = R00000000000000000000034; };
 
 
-		R00000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NexthrumMacApp.swift; sourceTree = "<group>"; };
+		R00000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NexthrumApp.swift; sourceTree = "<group>"; };
 		R00000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		R00000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		R00000000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -71,10 +71,10 @@
 		R00000000000000000000013 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSettingsPolicy.swift; sourceTree = "<group>"; };
 		R00000000000000000000014 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNotificationPolicyTests.swift; sourceTree = "<group>"; };
 		R00000000000000000000015 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSettingsPolicyTests.swift; sourceTree = "<group>"; };
-		R00000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = NexthrumMac.xcconfig; sourceTree = "<group>"; };
+		R00000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Nexthrum.xcconfig; sourceTree = "<group>"; };
 		R00000000000000000000017 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Tests.xcconfig; sourceTree = "<group>"; };
-		R00000000000000000000018 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NexthrumMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		R00000000000000000000019 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NexthrumMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		R00000000000000000000018 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nexthrum.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		R00000000000000000000019 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NexthrumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		R00000000000000000000020 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		R00000000000000000000021 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialSettingsTransactionTests.swift; sourceTree = "<group>"; };
 		R00000000000000000000022 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
@@ -115,8 +115,8 @@
 		P00000000000000000000007 = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = ( ); inputPaths = ("$(SRCROOT)/../../scripts/generate-swift-bindings.sh", "$(SRCROOT)/../../Cargo.toml", ); name = "Build Rust FFI and Swift bindings"; outputPaths = ("$(SRCROOT)/../../target/debug/deps/libnexthrum_ffi.dylib", "$(SRCROOT)/Generated/nexthrum_ffi.swift", ); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "set -e\ncd \"$SRCROOT/../..\"\n\"$HOME/.cargo/bin/cargo\" build -p nexthrum-ffi\ninstall_name_tool -id @rpath/libnexthrum_ffi.dylib target/debug/deps/libnexthrum_ffi.dylib\nscripts/generate-swift-bindings.sh\n"; };
 		P00000000000000000000008 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = (A00000000000000000000028, ); name = "Test Bundle Loader"; runOnlyForDeploymentPostprocessing = 0; };
 /* Targets */
-		T00000000000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = L00000000000000000000007; buildPhases = (P00000000000000000000007, P00000000000000000000001, P00000000000000000000003, P00000000000000000000005, P00000000000000000000006, ); buildRules = ( ); dependencies = ( ); name = NexthrumMac; productName = NexthrumMac; productReference = R00000000000000000000018; productType = "com.apple.product-type.application"; };
-		T00000000000000000000002 = {isa = PBXNativeTarget; buildConfigurationList = L00000000000000000000008; buildPhases = (P00000000000000000000002, P00000000000000000000004, P00000000000000000000008, ); buildRules = ( ); dependencies = ( ); name = NexthrumMacTests; productName = NexthrumMacTests; productReference = R00000000000000000000019; productType = "com.apple.product-type.bundle.unit-test"; };
+		T00000000000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = L00000000000000000000007; buildPhases = (P00000000000000000000007, P00000000000000000000001, P00000000000000000000003, P00000000000000000000005, P00000000000000000000006, ); buildRules = ( ); dependencies = ( ); name = Nexthrum; productName = Nexthrum; productReference = R00000000000000000000018; productType = "com.apple.product-type.application"; };
+		T00000000000000000000002 = {isa = PBXNativeTarget; buildConfigurationList = L00000000000000000000008; buildPhases = (P00000000000000000000002, P00000000000000000000004, P00000000000000000000008, ); buildRules = ( ); dependencies = ( ); name = NexthrumTests; productName = NexthrumTests; productReference = R00000000000000000000019; productType = "com.apple.product-type.bundle.unit-test"; };
 		T00000000000000000000003 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastUpgradeCheck = 2700;}; buildConfigurationList = L00000000000000000000009; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, "zh-Hans", Base, ); mainGroup = G00000000000000000000001; productRefGroup = G00000000000000000000006; projectDirPath = ""; projectRoot = ""; targets = (T00000000000000000000001, T00000000000000000000002, ); };
 /* Configurations */
 		L00000000000000000000001 = {isa = XCBuildConfiguration; baseConfigurationReference = R00000000000000000000016; buildSettings = {ENABLE_TESTABILITY = YES; }; name = Debug; };

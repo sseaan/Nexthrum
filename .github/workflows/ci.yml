@@ -116,8 +116,8 @@ jobs:
       - name: Xcode unit tests
         run: |
           xcodebuild \
-            -project apps/macos/NexthrumMac.xcodeproj \
-            -scheme NexthrumMac \
+            -project apps/macos/Nexthrum.xcodeproj \
+            -scheme Nexthrum \
             -destination 'platform=macOS,arch=arm64' \
             -derivedDataPath target/xcode-tests \
             CODE_SIGNING_ALLOWED=NO \

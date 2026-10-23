@@ -68,6 +68,8 @@ scripts/package-macos-dmg.sh                    # 自动使用 "Nexthrum Local S
 - 更新包由 `generate_appcast` 用 EdDSA 私钥签名，客户端校验后才安装；私钥在登录钥匙串，导出备份为 `~/.tauri/sparkle-ed25519.key`，CI 用 `SPARKLE_EDDSA_PRIVATE_KEY`
 - 本地已验证完整链路：appcast → 下载 → `EdDSA signature is correct for update` → 版本由 2000 升到 2001
 
+**从 `NexthrumMac.app` 迁移**：2.0 早期构建的 bundle 名为 `NexthrumMac.app`，现在统一为 `Nexthrum.app`。升级时先手动删除旧的 `NexthrumMac.app`，否则 `/Applications` 里会同时存在两份；`~/Library/Application Support/Nexthrum`、Keychain 条目与 bundle id（`com.nexthrum.app`）都不变，设置与凭据会沿用。
+
 ### 3.2 有开发者账号时的完整流程
 
 1. **签名**：`DEVELOPMENT_TEAM=<TeamID>`、`CODE_SIGN_IDENTITY="Developer ID Application: ..."`，开启 hardened runtime。
@@ -80,7 +82,7 @@ scripts/package-macos-dmg.sh                    # 自动使用 "Nexthrum Local S
 ```bash
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer scripts/build-macos-xcode.sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
-  -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac \
+  -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum \
   -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
 ```
 
@@ -122,7 +124,7 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 - `.github/workflows/ci.yml`：每次推送的双平台检查
 - `.github/workflows/build.yml`：标签触发的 Windows 发布
 - `apps/windows/src-tauri/tauri.conf.json`：bundle 与安装器配置
-- `apps/macos/NexthrumMac.xcconfig`：macOS 架构、部署目标与签名开关
+- `apps/macos/Nexthrum.xcconfig`：macOS 架构、部署目标与签名开关
 - `scripts/build-macos-xcode.sh`：本地构建与产物校验
 - `scripts/package-macos-dmg.sh`：ad-hoc 签名 + DMG 打包
 - `scripts/generate-icons.sh` / `scripts/icon_normalize.py`：图标重生成与留白归一

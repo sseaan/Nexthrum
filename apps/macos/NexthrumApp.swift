@@ -9,7 +9,7 @@ final class AppLifecycleDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct NexthrumMacApp: App {
+struct NexthrumApp: App {
     @NSApplicationDelegateAdaptor(AppLifecycleDelegate.self) private var appDelegate
     @StateObject private var model = AppModel()
 

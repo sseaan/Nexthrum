@@ -163,7 +163,7 @@ jobs:
           VERSION=$(node -p "require('./apps/windows/package.json').version")
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent \
-            target/xcode-derived/Build/Products/Debug/NexthrumMac.app \
+            target/xcode-derived/Build/Products/Debug/Nexthrum.app \
             "dist/Nexthrum-${VERSION}.zip"
 
       - name: Sign appcast

@@ -34,7 +34,7 @@ devlog/                   每日进展
 - Apple Silicon（arm64）、macOS 14.0+、Xcode 及 Rust stable。
 - 生成 Swift bindings：`scripts/generate-swift-bindings.sh`（需要 Rust；可选安装 `swiftformat` 进行格式化）。输出到 `apps/macos/Generated/`，生成 `.swift`、FFI header 和 modulemap。
 - 构建并校验 app：`scripts/build-macos-xcode.sh`（校验 arm64、内嵌 dylib、`@rpath`、Info.plist）。
-- 单元测试：`xcodebuild -project apps/macos/NexthrumMac.xcodeproj -scheme NexthrumMac -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test`。
+- 单元测试：`xcodebuild -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test`。
 - SwiftUI 通过稳定 Rust bridge 使用业务接口，不得绕过 Core 操作 SQLite。当前未配置正式签名与公证。
 
 ## 4. 代码边界
