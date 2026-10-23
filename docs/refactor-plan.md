@@ -77,7 +77,7 @@ Core 提供用例和类型化事件；不依赖 Tauri、Swift、React、平台�
 - 如无法满足异步/构建要求，再评估薄 C ABI；避免手写大量 unsafe Swift 桥接。
 - 固定版本化契约，并用测试防止 Rust、TS、Swift 模型漂移。
 
-### 阶段 4：macOS vertical slice（已完成，实机验收待补）
+### 阶段 4：macOS vertical slice（已完成；通知/启动项/退出清理的实机验收待补）
 - SwiftUI 连接设置、连接测试、实时收消息、SQLite 持久化和消息列表。
 - 加入菜单栏入口、通知授权/投递与点击跳转。
 - 验证断线恢复、休眠恢复、关闭窗口后台运行、权限拒绝及数据升级。
@@ -119,5 +119,5 @@ Core 提供用例和类型化事件；不依赖 Tauri、Swift、React、平台�
 
 - Windows Authenticode 证书来源与 CI 导入方式。
 - macOS 签名身份、公证凭据、DMG 打包与 Gatekeeper 验证的具体执行。
-- 自动更新是否接入（当前为手动更新，`tauri.conf.json` 的 updater 段是无效占位）。
+- 自动更新已接入：Windows 用 `tauri-plugin-updater`（`latest.json`），macOS 用 Sparkle（`appcast.xml`）。
 - macOS 通知授权、启动项审批与退出清理的实机验收记录方式。

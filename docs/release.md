@@ -1,6 +1,6 @@
 # Nexthrum 发布与签名手册
 
-本文覆盖发布前必须完成的事项、当前尚未配置的部分，以及刻意做出的取舍。**尚未完成的项目在 CI 中不会失败**，需要人工确认。
+本文覆盖发布前必须完成的事项、当前尚未配置的部分，以及刻意做出的取舍。**没有付费证书的项目在 CI 中不会失败**，需要人工确认：Windows 无 Authenticode、macOS 无 Developer ID / 公证。
 
 ## 1. 版本号唯一来源
 
@@ -43,7 +43,7 @@
 
 ## 3. macOS 发布
 
-**现状**：仅 arm64、最低 macOS 14.0。维护者**没有付费 Apple Developer 账号**，因此默认走「ad-hoc 签名 + 未公证 DMG」路线；有账号时可按下面的完整流程升级。
+**现状**：仅 arm64、最低 macOS 14.0。维护者**没有付费 Apple Developer 账号**，因此使用「稳定自签身份 + 未公证 DMG + Sparkle 自动更新」；有账号时可按 3.2 的完整流程升级。
 
 ### 3.1 无开发者账号（当前路线）：稳定自签身份 + Sparkle
 
@@ -104,7 +104,7 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 
 **轮换密钥**：`npx tauri signer generate -w ~/.tauri/nexthrum-updater.key` → 更新 `tauri.conf.json` 的 `plugins.updater.pubkey` → 重新设置上面两个 secret。已发布版本的旧签名会失效，需要发一个新版本让用户过渡。
 
-**macOS**：updater 目前只配置给 Windows；macOS 仍是手动更新（见 3.1）。
+**macOS**：通过 Sparkle 自动更新（见 3.1），与 Windows 的 `tauri-plugin-updater` 各自使用独立清单与密钥。
 
 ## 5. 发布前检查清单
 
@@ -126,5 +126,6 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 - `apps/windows/src-tauri/tauri.conf.json`：bundle 与安装器配置
 - `apps/macos/Nexthrum.xcconfig`：macOS 架构、部署目标与签名开关
 - `scripts/build-macos-xcode.sh`：本地构建与产物校验
-- `scripts/package-macos-dmg.sh`：ad-hoc 签名 + DMG 打包
+- `scripts/package-macos-dmg.sh`：稳定自签身份签名 + DMG 打包
+- `apps/macos/Vendor/Sparkle.framework`：macOS 自动更新框架（2.10.0）
 - `scripts/generate-icons.sh` / `scripts/icon_normalize.py`：图标重生成与留白归一

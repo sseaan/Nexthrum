@@ -10,7 +10,7 @@
 - macOS：SwiftUI 经 UniFFI `BridgeService` 使用共享 Gotify client 与 SQLite repository，已具备设置、连接、消息管理、通知、菜单栏与启动项；凭据在 Keychain。
 - 共享：`nexthrum-core`（用例/策略）、`nexthrum-gotify`（HTTP/WebSocket）、`nexthrum-storage`（SQLite/migration）、`nexthrum-ffi`（bridge）。
 
-尚未完成的是发布工程，而非业务分层：Windows/macOS 正式签名与公证、macOS 实机验收。详见 `docs/release.md`。
+尚未完成的是发布工程，而非业务分层：两个平台都没有 Apple/Windows 付费证书（macOS 用稳定自签身份 + Sparkle，Windows 未做 Authenticode），以及 macOS 实机验收。详见 `docs/release.md`。
 
 ## 2. 目标架构图
 

@@ -28,9 +28,9 @@ scripts/build-macos-xcode.sh
 
 The shared `Nexthrum.xcconfig` is the single source for target architecture and Swift/linker settings. The Xcode build phase builds the Rust FFI crate and regenerates UniFFI bindings; the wrapper validates the resulting arm64 executable, embedded dylib, `@rpath`, and Info.plist. Output is `target/xcode-derived/Build/Products/Debug/Nexthrum.app`.
 
-The Xcode project intentionally targets Apple Silicon arm64 only; Intel/x86_64 and universal binaries are out of scope. The current deployment target is macOS 14.0.
+The Xcode project intentionally targets Apple Silicon arm64 only; Intel/x86_64 and universal binaries are out of scope. The current deployment target is macOS 14.0. `Sparkle.framework` (2.10.0) is vendored under `Vendor/` and drives automatic updates from the release `appcast.xml`.
 
-The prior `scripts/build-macos-dev.sh` remains as the standalone ad-hoc development bundler. Neither build is configured for production signing/notarization.
+Builds are signed with the stable self-signed identity (`scripts/create-local-signing-identity.sh`); Gatekeeper still warns on first install because the app is not notarized.
 
 The first slice validates settings through `BridgeService`, tests the Gotify `/version` endpoint through `nexthrum-gotify`, and exposes a cancellable WebSocket lifecycle. UniFFI exposes `startConnection`, non-blocking `pollEvent`, and `stopConnection`; Swift polls on the main run loop and updates connection state and the in-memory message list. Tokio runtime/channels remain inside Rust and are not passed across FFI.
 
