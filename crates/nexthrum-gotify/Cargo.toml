@@ -1,0 +1,23 @@
+[package]
+name = "nexthrum-gotify"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = "0.3"
+log = "0.4"
+nexthrum-core = { path = "../nexthrum-core" }
+reqwest = { version = "0.12", features = ["json"] }
+# `ring` must be enabled here: tokio-tungstenite only turns on rustls' `std`
+# feature, so without this the process has no CryptoProvider and every TLS
+# handshake panics.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "sync", "time", "net"] }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+url = "2"
+
+[dev-dependencies]
+base64 = "0.22"
+sha1 = "0.10"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "net", "io-util"] }

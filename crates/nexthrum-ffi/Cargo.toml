@@ -1,0 +1,23 @@
+[package]
+name = "nexthrum-ffi"
+version = "0.1.0"
+edition = "2021"
+description = "Cross-language DTO and service boundary for SwiftUI"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+nexthrum-core = { path = "../nexthrum-core" }
+nexthrum-gotify = { path = "../nexthrum-gotify" }
+nexthrum-storage = { path = "../nexthrum-storage" }
+serde = { version = "1", features = ["derive"] }
+uniffi = { version = "0.28", features = ["cli"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
+[dev-dependencies]
+base64 = "0.22"
+sha1 = "0.10"
+tempfile = "3"
