@@ -34,6 +34,7 @@ Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端
 | 架构设计 | `docs/architecture.md` | 架构图、模块职责、事件/Tauri 协议、持久化 |
 | 重构计划 | `docs/refactor-plan.md` | 迁移阶段与验收标准 |
 | 发布手册 | `docs/release.md` | 版本同步、签名/公证、更新策略、发布检查清单 |
+| 项目说明 | `README.md` / `README.zh.md` | 英文主文档与简体中文版（安装、构建、架构、许可） |
 | 开发指南 | `docs/development-guide.md` | 环境搭建、开发流程、代码规范 |
 | 开发日志 | `devlog/YYYY-MM-DD.md` | 完成事项 + 待办（先看最新一篇了解进度） |
 

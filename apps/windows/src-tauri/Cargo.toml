@@ -4,6 +4,7 @@ version = "2.0.0"
 description = "Nexthrum Windows Client"
 authors = ["You"]
 edition = "2021"
+license = "AGPL-3.0-only"
 
 [lib]
 name = "nexthrum_lib"

@@ -1,321 +1,199 @@
 # Nexthrum
 
-[🇨🇳 中文版](#nexthrum-中文)
+**English** · [简体中文](README.zh.md)
 
-A Windows desktop client for [Gotify](https://gotify.net/) — receive push messages via native Windows notifications.
+A cross-platform desktop client for [Gotify](https://gotify.net/): receive your self-hosted push messages as native notifications, with a shared Rust core behind both native frontends.
 
-Built with **Tauri 2.0 + React + TypeScript + Rust**.
-
----
-
-## ✨ Features
-
-- 🔗 **WebSocket real-time push** — connect to Gotify server, receive messages instantly
-- 🔔 **Windows native notifications** — toast notifications via Windows Notification Center
-- 📋 **Message history** — local SQLite storage with configurable retention (default 7 days)
-- 🏷 **Filter by app** — filter messages by source application
-- 📋 **Click to copy** — click any message to copy its content to clipboard
-- 🧹 **Clear all** — clear local messages, with optional server sync
-- 🌙 **Dark theme** — designed for low-distraction notification monitoring
-- 📌 **System tray** — minimize to tray, always running in background
-- 🚫 **Do Not Disturb** — suppress notifications during specified hours
-- 🪟 **Frameless window** — clean custom title bar with drag support
-- 🌍 **i18n** — English & 中文 supported, switch in Settings
-- 🚀 **Auto-start** — optionally launch on Windows startup
-- 📦 **Portable + Installer** — NSIS installer and portable .zip available
+| Platform | UI | Status |
+|---|---|---|
+| Windows 10 1809+ / 11 | Tauri 2 + React 18 + TypeScript | Shipping |
+| macOS 14+ (Apple Silicon) | SwiftUI + Sparkle | Shipping |
 
 ---
 
-## 📸 Screenshots
+## Features
 
-*Coming soon*
+- **Real-time stream** — Gotify WebSocket client with automatic reconnect, cancel-on-stop and a 10 s handshake timeout, so the UI never hangs on "connecting".
+- **Native notifications** — Windows toast notifications and macOS `UserNotifications`; both respect the shared do-not-disturb policy from the Rust core.
+- **Local history** — SQLite with configurable retention (1–365 days, default 7). Duplicate deliveries keep the local read state and never re-notify.
+- **Message list as cards** — unread state is shown with three redundant cues (accent bar, dot, weight), source and priority badges, and hover elevation.
+- **Search** — case-insensitive match over title and body, debounced, with the global unread count preserved while filtering.
+- **Source filter** — appears when messages come from two or more Gotify applications; names are resolved from `/application` and fall back to `App <id>`.
+- **Always-on entry points** — Windows tray with unread badge and tooltip; macOS menu bar popover with the three most recent messages and quick actions.
+- **Secure credentials** — the client token never touches the settings JSON: Windows Credential Manager and macOS Keychain, with idempotent migration of old plaintext tokens.
+- **Automatic updates** — signed update channel per platform: Windows `tauri-plugin-updater`, macOS Sparkle (EdDSA-signed appcast).
+- **Localized UI** — English and Simplified Chinese; Windows has an in-app switch, macOS follows the system language.
+- **Launch at login** — Windows autostart entry and macOS `SMAppService`, with the real system approval state surfaced in Settings.
 
 ---
 
-## 📥 Installation
+## Installation
 
-### Download
+Download from [GitHub Releases](https://github.com/sseaan/Nexthrum/releases).
 
-Get the latest version from [GitHub Releases](https://github.com/sseaan/Nexthrum/releases).
+### Windows
 
 | File | Description |
-|------|-------------|
-| `Nexthrum_*_x64-setup.exe` | NSIS installer — install for current user |
-| `Nexthrum_portable.zip` | Portable version — extract and run |
+|---|---|
+| `Nexthrum_*_x64-setup.exe` | NSIS installer (per-user, no admin prompt) |
+| `Nexthrum_portable.zip` | Portable build — extract and run |
 
-### System Requirements
+The installer is **not** Authenticode-signed yet, so SmartScreen shows "Windows protected your PC" on first run: choose **More info → Run anyway**.
 
-- Windows 10 version 1809+ or Windows 11
-- [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) (pre-installed on Windows 11, auto-updated on Windows 10)
+### macOS
 
----
+| File | Description |
+|---|---|
+| `Nexthrum-*_arm64.dmg` | Drag-and-drop app bundle (Apple Silicon, macOS 14+) |
 
-## 🚀 Usage
+The app is **not notarized** (no paid Apple Developer account), so the first launch needs **right-click → Open**, or:
 
-1. Launch Nexthrum (window opens, tray icon appears)
-2. Click the tray icon or open the window from the tray menu
-3. Go to **Settings** (⚙ icon in toolbar or tray menu → Settings)
-4. Enter your **Gotify Server URL** and **Client Token**
-5. Click **Test Connection** to verify
-6. **Save Settings** — WebSocket connects automatically
-7. Send a test message from your Gotify server — it appears in the list!
+```bash
+xattr -dr com.apple.quarantine /Applications/Nexthrum.app
+```
 
-### Tray Menu
-
-| Action | Description |
-|--------|-------------|
-| Left-click tray icon | Show/hide message window |
-| Right-click → Message List | Show message window |
-| Right-click → Settings | Open settings |
-| Right-click → Exit | Quit application |
-
-### Window Controls
-
-| Button | Action |
-|--------|--------|
-| `—` | Minimize window |
-| `✕` | Hide to tray (not quit — configurable in Settings) |
-| Drag title bar | Move window |
+Upgrades delivered by Sparkle are installed without the quarantine flag, so later updates no longer prompt. If you are upgrading from an early 2.0 build, delete the old `NexthrumMac.app` first — the bundle id, settings and Keychain entry are unchanged.
 
 ---
 
-## 🛠 Development
+## Getting started
+
+1. Launch Nexthrum — the window opens and a tray icon / menu bar item appears.
+2. Open **Settings** and enter your **Gotify server URL** (for example `https://gotify.example.com`) and a **client token** (Gotify web UI → *Clients*).
+3. Press **Test connection** to check the HTTP endpoint, then **Save** — the WebSocket stream starts automatically.
+4. Send a message from Gotify; it shows up in the list and raises a notification unless do-not-disturb is active.
+
+---
+
+## Build from source
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20+
-- [Rust](https://rustup.rs/) stable
-- [Microsoft Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/) (Windows)
+| Platform | Requirements |
+|---|---|
+| Windows | Node.js 20+, Rust stable, Visual Studio C++ Build Tools, WebView2 |
+| macOS | Node.js 20+, Rust stable, Xcode 15.4+ (arm64), macOS 14 SDK |
+| Both | Git; `cargo`, `npm` on `PATH` |
 
-### Setup
+### Windows client
 
 ```bash
-# Clone
 git clone https://github.com/sseaan/Nexthrum.git
 cd Nexthrum
 
-# Install frontend dependencies
-npm --prefix apps/windows install
-
-# Start development (with hot reload)
-npm --prefix apps/windows run tauri dev
-
-# Build production
-npm --prefix apps/windows run tauri build
+npm --prefix apps/windows ci
+npm --prefix apps/windows run tauri dev     # development with hot reload
+npm --prefix apps/windows run tauri build   # NSIS installer + portable zip
 ```
 
-### Project Structure
-
-```
-Nexthrum/
-├── apps/
-│   ├── windows/            # Windows client (Tauri + React)
-│   │   ├── src/            # React frontend
-│   │   │   ├── components/ # MessageWindow / SettingsWindow / common
-│   │   │   ├── hooks/      # Tauri event listeners
-│   │   │   ├── store/      # Zustand state
-│   │   │   ├── i18n/       # Translations (zh-CN / en-US)
-│   │   │   ├── types/      # TypeScript types
-│   │   │   └── utils/      # Utilities
-│   │   └── src-tauri/      # Tauri host adapter
-│   │       └── src/
-│   │           ├── lib.rs         # State, setup, command registration
-│   │           ├── commands.rs    # Tauri commands
-│   │           ├── websocket.rs   # Event adapter for the Gotify client
-│   │           ├── credentials.rs # Windows Credential Manager
-│   │           ├── storage.rs     # Storage path resolution
-│   │           └── tray.rs        # System tray
-│   └── macos/              # macOS client (SwiftUI + Xcode)
-├── crates/                 # Shared Rust workspace
-│   ├── nexthrum-core/      # Domain models, use cases, DND policy
-│   ├── nexthrum-gotify/    # Gotify HTTP/WebSocket client
-│   ├── nexthrum-storage/   # SQLite repository + migrations
-│   └── nexthrum-ffi/       # UniFFI bridge for Swift
-├── scripts/                # Bindings generation, macOS build checks
-├── tools/uniffi-bindgen/   # Local Swift bindings generator
-├── docs/ devlog/           # Documentation and development logs
-└── .github/workflows/      # CI/CD
-```
-
-### Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | Tauri 2.0 |
-| Frontend | React 18 + TypeScript |
-| Styling | Tailwind CSS |
-| State | Zustand |
-| Backend | Rust |
-| Storage | SQLite (rusqlite) |
-| WebSocket | tokio-tungstenite (rustls) |
-| Notifications | tauri-plugin-notification |
-| CI/CD | GitHub Actions |
-
----
-
-## 📄 License
-
-MIT © [Sean](https://github.com/sseaan)
-
----
-
----
-
-# Nexthrum 中文
-
-[🇬🇧 English](#nexthrum)
-
-一款 Windows 桌面 Gotify 客户端 — 通过 Windows 原生通知接收推送消息。
-
-基于 **Tauri 2.0 + React + TypeScript + Rust** 构建。
-
----
-
-## ✨ 功能特性
-
-- 🔗 **WebSocket 实时推送** — 连接 Gotify 服务器，即时接收消息
-- 🔔 **Windows 原生通知** — 通过 Windows 通知中心弹出提醒
-- 📋 **消息历史记录** — 本地 SQLite 存储，可配置保留天数（默认 7 天）
-- 🏷 **按应用筛选** — 按消息来源应用过滤列表
-- 📋 **点击复制** — 单击消息即可复制内容到剪贴板
-- 🧹 **一键清空** — 清空本地消息，可选同步删除服务器消息
-- 🌙 **暗色主题** — 专为低干扰消息监控设计
-- 📌 **系统托盘** — 最小化到托盘，后台持续运行
-- 🚫 **免打扰模式** — 指定时段内不弹出通知
-- 🪟 **无边框窗口** — 简洁自定义标题栏，支持拖拽移动
-- 🌍 **多语言** — 支持中文 / English，设置中切换
-- 🚀 **开机自启** — 可随 Windows 启动自动运行
-- 📦 **安装包 + 便携版** — 提供 NSIS 安装包和 .zip 便携版
-
----
-
-## 📸 截图
-
-*即将推出*
-
----
-
-## 📥 安装
-
-### 下载
-
-从 [GitHub Releases](https://github.com/sseaan/Nexthrum/releases) 获取最新版本。
-
-| 文件 | 说明 |
-|------|------|
-| `Nexthrum_*_x64-setup.exe` | NSIS 安装包 — 为当前用户安装 |
-| `Nexthrum_portable.zip` | 便携版 — 解压即用 |
-
-### 系统要求
-
-- Windows 10 版本 1809+ 或 Windows 11
-- [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/)（Windows 11 预装，Windows 10 自动更新）
-
----
-
-## 🚀 使用说明
-
-1. 启动 Nexthrum（窗口打开，托盘图标出现）
-2. 点击托盘图标或从托盘菜单打开窗口
-3. 进入**设置**（工具栏 ⚙ 按钮或托盘菜单 → 设置）
-4. 填写 **Gotify 服务器地址**和**客户端令牌**
-5. 点击**测试连接**验证
-6. **保存设置** — WebSocket 自动连接
-7. 从 Gotify 服务器发送一条测试消息 — 消息出现在列表中！
-
-### 托盘菜单
-
-| 操作 | 说明 |
-|------|------|
-| 左键单击托盘图标 | 显示/隐藏消息窗口 |
-| 右键 → 消息列表 | 显示消息窗口 |
-| 右键 → 设置 | 打开设置 |
-| 右键 → 退出 | 退出应用 |
-
-### 窗口控制
-
-| 按钮 | 功能 |
-|------|------|
-| `—` | 最小化窗口 |
-| `✕` | 隐藏到托盘（不退出，可在设置中修改） |
-| 拖拽标题栏 | 移动窗口 |
-
----
-
-## 🛠 开发
-
-### 环境要求
-
-- [Node.js](https://nodejs.org/) 20+
-- [Rust](https://rustup.rs/) stable
-- [Microsoft Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)（Windows）
-
-### 快速开始
+### macOS client
 
 ```bash
-# 克隆项目
-git clone https://github.com/sseaan/Nexthrum.git
-cd Nexthrum
+scripts/generate-swift-bindings.sh          # UniFFI bindings for Swift
+scripts/build-macos-xcode.sh                # builds and validates Nexthrum.app
+scripts/package-macos-dmg.sh                # signed DMG for local distribution
 
-# 安装前端依赖
-npm --prefix apps/windows install
-
-# 启动开发模式（热更新）
-npm --prefix apps/windows run tauri dev
-
-# 生产构建
-npm --prefix apps/windows run tauri build
+# unit tests
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
+  -project apps/macos/Nexthrum.xcodeproj -scheme Nexthrum \
+  -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test
 ```
 
-### 项目结构
+macOS builds are signed with a **stable self-signed identity** created by `scripts/create-local-signing-identity.sh`. This keeps the code signature (and therefore Keychain grants) stable between rebuilds; it does not replace notarization.
 
-```
-Nexthrum/
-├── apps/
-│   ├── windows/            # Windows 客户端（Tauri + React）
-│   │   ├── src/            # React 前端
-│   │   │   ├── components/ # 消息窗口 / 设置窗口 / 公共组件
-│   │   │   ├── hooks/      # Tauri 事件监听
-│   │   │   ├── store/      # Zustand 状态管理
-│   │   │   ├── i18n/       # 多语言翻译
-│   │   │   ├── types/      # TypeScript 类型定义
-│   │   │   └── utils/      # 工具函数
-│   │   └── src-tauri/      # Tauri host adapter
-│   │       └── src/
-│   │           ├── lib.rs         # 状态、初始化、命令注册
-│   │           ├── commands.rs    # Tauri 命令
-│   │           ├── websocket.rs   # Gotify 客户端事件适配
-│   │           ├── credentials.rs # Windows 凭据管理器
-│   │           ├── storage.rs     # 存储路径解析
-│   │           └── tray.rs        # 系统托盘
-│   └── macos/              # macOS 客户端（SwiftUI + Xcode）
-├── crates/                 # 共享 Rust workspace
-│   ├── nexthrum-core/      # 领域模型、用例、DND 策略
-│   ├── nexthrum-gotify/    # Gotify HTTP/WebSocket 客户端
-│   ├── nexthrum-storage/   # SQLite repository + migrations
-│   └── nexthrum-ffi/       # Swift 用 UniFFI bridge
-├── scripts/                # bindings 生成、macOS 构建校验
-├── tools/uniffi-bindgen/   # 本地 Swift bindings 生成器
-├── docs/ devlog/           # 文档与开发日志
-└── .github/workflows/      # CI/CD
+### Checks
+
+```bash
+cargo fmt --all --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+npm --prefix apps/windows run typecheck
+npm --prefix apps/windows test
 ```
 
-### 技术栈
-
-| 层级 | 技术 |
-|------|------|
-| 桌面框架 | Tauri 2.0 |
-| 前端 | React 18 + TypeScript |
-| 样式 | Tailwind CSS |
-| 状态管理 | Zustand |
-| 后端 | Rust |
-| 存储 | SQLite (rusqlite) |
-| WebSocket | tokio-tungstenite (rustls) |
-| 通知 | tauri-plugin-notification |
-| 构建 | GitHub Actions |
+CI (`.github/workflows/ci.yml`) runs the same checks on Windows and macOS arm64, plus UniFFI generation, the Xcode build and XCTest.
 
 ---
 
-## 📄 许可证
+## Architecture
 
-MIT © [Sean](https://github.com/sseaan)
+```
+apps/windows (React)  ──Tauri──┐
+                               ├── nexthrum-core ── nexthrum-storage (SQLite)
+apps/macos (SwiftUI) ──UniFFI──┘        │            nexthrum-gotify (HTTP/WS)
+                                        └── host adapters: tray, notifications,
+                                            credentials, window lifecycle
+```
+
+- `nexthrum-core` owns every business rule: message intake, deduplication, read state, DND, retention. It has no UI, Tauri or platform-path dependencies.
+- `nexthrum-gotify` owns the HTTP API and the WebSocket client, including reconnect/backoff, cancellation, typed errors and the rustls crypto-provider setup.
+- `nexthrum-storage` owns SQLite schema migrations, queries and settings I/O; the host injects the paths.
+- `nexthrum-ffi` exposes a stable UniFFI surface (`BridgeService`, DTOs, typed errors) for Swift.
+- Host adapters stay thin: Tauri commands and the SwiftUI bridge only validate input, call core use cases and surface events.
+
+The backend owns state: unread counts and message lists always come from an atomic snapshot, and mutation commands return the post-mutation snapshot.
+
+### Repository layout
+
+```
+apps/
+  windows/            Windows client (React + Vite) and Tauri host
+  macos/              SwiftUI app, Xcode project, XCTest, Sparkle (Vendor/)
+crates/
+  nexthrum-core/      Domain models, use cases, DND and notification policy
+  nexthrum-gotify/    Gotify HTTP/WebSocket client
+  nexthrum-storage/   SQLite repository, migrations, settings
+  nexthrum-ffi/       UniFFI bridge
+scripts/              Bindings, icons, macOS build/package, signing identity
+tools/uniffi-bindgen/ Local Swift bindings generator
+docs/                 Requirements, architecture, design, tech spec, release runbook
+devlog/               Daily development log
+```
+
+### Tech stack
+
+| Layer | Windows | macOS |
+|---|---|---|
+| UI | React 18 + TypeScript + Tailwind CSS v4 + Zustand | SwiftUI |
+| Host | Tauri 2 (Rust) | AppKit bridge + UniFFI |
+| Core | Rust workspace (`nexthrum-core`, `nexthrum-gotify`, `nexthrum-storage`) | same crates |
+| Storage | SQLite (rusqlite) | same repository |
+| Streaming | tokio-tungstenite + rustls | same client |
+| Notifications | `tauri-plugin-notification` | `UserNotifications` |
+| Updates | `tauri-plugin-updater` (`latest.json`) | Sparkle (`appcast.xml`) |
+| Credentials | Windows Credential Manager | Keychain |
+
+---
+
+## Data and privacy
+
+- Nexthrum talks only to the Gotify server you configure; there is no telemetry and no third-party service.
+- Tokens are stored in the platform credential vault, never in `settings.json`. Logs are redacted.
+- Local data:
+  - Windows: `%APPDATA%\Nexthrum\nexthrum_messages.db` and `nexthrum_data\settings.json`
+  - macOS: `~/Library/Application Support/Nexthrum/`
+- Deleting messages locally never touches the server unless you enable "sync deletion" in the clear dialog.
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`docs/requirements.md`](docs/requirements.md) | Product requirements and acceptance criteria |
+| [`docs/architecture.md`](docs/architecture.md) | Module responsibilities, events, persistence, update channels |
+| [`docs/tech-spec.md`](docs/tech-spec.md) | Layering rules, dependencies, quality gates |
+| [`docs/design-spec.md`](docs/design-spec.md) | Visual language, layout, accessibility rules |
+| [`docs/release.md`](docs/release.md) | Version sources, signing, notarization, updates, checklist |
+| [`docs/development-guide.md`](docs/development-guide.md) | Environment setup and workflow |
+| [`AGENTS.md`](AGENTS.md) | Contribution conventions for automated agents |
+
+---
+
+## License
+
+Copyright © 2026 Sean.
+
+Nexthrum is free software licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0). See [LICENSE](LICENSE) for the full text.
+
+You may use, study, modify and redistribute it under the terms of that license. Because AGPL-3.0 also covers software offered over a network, if you deploy a modified Nexthrum as a network service you must offer the corresponding source to its users. There is **no warranty**, as stated in the license.
