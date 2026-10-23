@@ -5,6 +5,7 @@ import { useTauriEvents } from "./hooks/useTauriEvents";
 import { TitleBar } from "./components/common/TitleBar";
 import { MessageWindow } from "./components/MessageWindow/MessageWindow";
 import { SettingsWindow } from "./components/SettingsWindow/SettingsWindow";
+import { isTauriRuntime } from "./utils/tauriEnv";
 import type { MessageSnapshot } from "./types";
 
 function App() {
@@ -32,6 +33,11 @@ function App() {
   };
 
   useEffect(() => {
+    // Browser preview: there is no Rust host, so nothing to load or listen to.
+    if (!isTauriRuntime()) {
+      setSettingsLoaded(true);
+      return;
+    }
     if (!listenersReady) return;
     let active = true;
     const loadInitialData = async () => {
@@ -72,6 +78,14 @@ function App() {
       className="flex h-full flex-col overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]"
     >
       <TitleBar />
+      {!isTauriRuntime() && (
+        <div
+          role="status"
+          className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface-hover)] px-4 py-1.5 text-center text-xs text-[var(--color-text-secondary)]"
+        >
+          浏览器预览：未连接 Tauri 后端，仅用于检查布局与主题
+        </div>
+      )}
       <div className="flex-1 overflow-hidden">
         {currentView === "settings" ? <SettingsWindow /> : <MessageWindow />}
       </div>

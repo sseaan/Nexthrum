@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useAppStore } from "../store/useAppStore";
+import { isTauriRuntime } from "../utils/tauriEnv";
 import type { GotifyMessage } from "../types";
 
 /**
@@ -19,6 +20,9 @@ export function useTauriEvents() {
   const setConnectionError = useAppStore((s) => s.setConnectionError);
 
   useEffect(() => {
+    // No IPC bridge outside the Tauri webview: stay silent instead of logging
+    // listener failures in the browser preview.
+    if (!isTauriRuntime()) return;
     let active = true;
     const unlisteners: UnlistenFn[] = [];
 

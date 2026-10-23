@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { downloadProgress, initialUpdateStatus, type UpdateStatus } from "../utils/updateState";
+import { isTauriRuntime } from "../utils/tauriEnv";
 
 const CHECK_DELAY_MS = 4000;
 
@@ -63,6 +64,7 @@ export function useUpdater() {
   }, []);
 
   useEffect(() => {
+    if (!isTauriRuntime()) return;
     const timer = setTimeout(() => void checkForUpdates(), CHECK_DELAY_MS);
     return () => clearTimeout(timer);
   }, [checkForUpdates]);
