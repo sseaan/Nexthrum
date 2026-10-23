@@ -62,7 +62,7 @@ jobs:
             | 平台 / Platform | 文件 / File | 说明 / Notes |
             |---|---|---|
             | Windows | `Nexthrum_2.0.0_x64-setup.exe` | NSIS 安装包，按当前用户安装 / per-user installer |
-            | Windows | `Nexthrum_portable.zip` | 便携版，解压即用 / portable, extract and run |
+            | Windows | `Nexthrum_2.0.0_x64-portable.zip` | 便携版，解压即用 / portable, extract and run |
             | macOS (arm64) | `Nexthrum-2.0.0-arm64.dmg` | 拖入 Applications 即可 / drag to Applications |
             | 自动更新 / Updates | `latest.json` · `appcast.xml` | 由应用自动使用 / consumed by the apps |
 
@@ -106,11 +106,14 @@ jobs:
         shell: bash
         run: |
           # The Cargo workspace publishes artifacts to the repository root target/.
+          VERSION=$(node -p "require('./apps/windows/package.json').version")
+          PORTABLE="Nexthrum_${VERSION}_x64-portable.zip"
           exe="target/${{ matrix.target }}/release/nexthrum.exe"
           if [ -f "$exe" ]; then
             cp "$exe" Nexthrum.exe
-            7z a "Nexthrum_portable.zip" Nexthrum.exe
-            echo "Portable zip created successfully"
+            7z a "$PORTABLE" Nexthrum.exe
+            echo "PORTABLE_NAME=$PORTABLE" >> "$GITHUB_ENV"
+            echo "Portable zip created: $PORTABLE"
           else
             echo "ERROR: Release exe not found at $exe"
             ls -la "target/${{ matrix.target }}/release/" 2>/dev/null || true
@@ -122,11 +125,22 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" Nexthrum_portable.zip --clobber
+        run: |
+          gh release upload "${{ github.ref_name }}" "$PORTABLE_NAME" --clobber
+
+          # The updater reads the signature from latest.json, so the standalone
+          # .sig asset is redundant noise in the release.
+          gh release view "${{ github.ref_name }}" --json assets \
+            --jq '.assets[].name | select(endswith(".sig"))' |
+            while read -r sig; do
+              [ -n "$sig" ] && gh release delete-asset "${{ github.ref_name }}" "$sig" --yes
+            done
 
   macos:
     name: macOS arm64 release
     runs-on: macos-14
+    # Wait for the Windows job, which creates the release through tauri-action.
+    needs: build
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
