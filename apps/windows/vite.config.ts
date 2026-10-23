@@ -11,6 +11,9 @@ export default defineConfig(async () => ({
   clearScreen: false,
   server: {
     port: 1420,
+    // tauri.conf.json's devUrl hard-codes 1420, so a fallback port would load a
+    // blank window. Failing loudly is the better trade-off; see
+    // docs/windows-testing.md 8.2 for clearing a stale listener.
     strictPort: true,
     host: host || false,
     hmr: host

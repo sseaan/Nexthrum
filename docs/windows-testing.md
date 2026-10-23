@@ -230,11 +230,39 @@ npm run dev
 
 ### 8.2 连接与端口类
 
+`tauri.conf.json` 的 `devUrl` 写死了 `http://localhost:1420`，所以 `vite.config.ts` 用 `strictPort: true`：
+端口被占时 Vite 直接失败，而不是换一个端口——后者会让窗口指向空白页。不要为了“跑起来”把 `strictPort` 改成 `false`。
+
+**先确认是谁占着端口**（只看 `Listen`，`TimeWait` 不阻塞绑定）：
+
+```powershell
+Get-NetTCPConnection -LocalPort 1420 -State Listen -ErrorAction SilentlyContinue |
+  ForEach-Object { Get-Process -Id $_.OwningProcess } |
+  Select-Object Id, ProcessName, Path -Unique
+```
+
+如果列出的是本项目的 `node.exe`（残留的 `tauri dev` / `npm run dev`），直接结束：
+
+```powershell
+Get-NetTCPConnection -LocalPort 1420 -State Listen -ErrorAction SilentlyContinue |
+  ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+```
+
+备选（不支持 `Get-NetTCPConnection` 的老系统）：
+
+```powershell
+netstat -ano | findstr :1420      # 取最后一列 PID
+taskkill /PID <PID> /F
+```
+
+如果占着端口的是**别的应用**，不要杀它，改用端口：同时改
+`apps/windows/vite.config.ts` 的 `server.port` 与 `src-tauri/tauri.conf.json` 的 `devUrl`（以及 `hmr.port` 若用到），两者必须一致。
+
 | 现象 | 处理 |
 |---|---|
-| Console 报 `ERR_CONNECTION_REFUSED` / `Failed to load resource` | Vite 没起来或端口不对：`Get-NetTCPConnection -LocalPort 1420` 查占用，结束残留 node 进程后重跑 |
-| 终端提示 `Port 1420 is already in use`（`strictPort`） | 同上；关掉之前的 `tauri dev` / `npm run dev` 遗留进程 |
-| 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `apps/windows/vite.config.ts` 的 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `src-tauri/tauri.conf.json` 的 `devUrl` 改成 `http://127.0.0.1:1420` |
+| 终端提示 `Port 1420 is already in use` | 按上面的命令找占用进程并结束；通常是上次 `tauri dev` 没退干净 |
+| Console 报 `ERR_CONNECTION_REFUSED` / `Failed to load resource` | Vite 没起来：确认终端里有 `Local: http://localhost:1420/` |
+| 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `devUrl` 改成 `http://127.0.0.1:1420` |
 | WebView2 缺失 | `winget install Microsoft.EdgeWebView2Runtime` |
 
 ### 8.3 构建与环境类
