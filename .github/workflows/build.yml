@@ -64,6 +64,7 @@ jobs:
             | Windows | `Nexthrum_2.0.0_x64-setup.exe` | NSIS 安装包，按当前用户安装 / per-user installer |
             | Windows | `Nexthrum_2.0.0_x64-portable.zip` | 便携版，解压即用 / portable, extract and run |
             | macOS (arm64) | `Nexthrum-2.0.0-arm64.dmg` | 拖入 Applications 即可 / drag to Applications |
+            | macOS (arm64) | `Nexthrum-2.0.0.zip` | 应用包压缩版，供 Sparkle 更新使用 / app archive used by Sparkle |
             | 自动更新 / Updates | `latest.json` · `appcast.xml` | 由应用自动使用 / consumed by the apps |
 
             ### 系统要求 / Requirements
@@ -205,13 +206,20 @@ jobs:
           DERIVED_DATA_PATH="$PWD/target/xcode-derived" \
             scripts/build-macos-xcode.sh
 
-      - name: Package update archive
+      - name: Package update archive and DMG
         run: |
           VERSION=$(node -p "require('./apps/windows/package.json').version")
+          APP="target/xcode-derived/Build/Products/Debug/Nexthrum.app"
           mkdir -p dist
-          ditto -c -k --sequesterRsrc --keepParent \
-            target/xcode-derived/Build/Products/Debug/Nexthrum.app \
-            "dist/Nexthrum-${VERSION}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "dist/Nexthrum-${VERSION}.zip"
+
+          # Human download: same archive layout as scripts/package-macos-dmg.sh.
+          STAGE="$RUNNER_TEMP/dmg"
+          mkdir -p "$STAGE"
+          cp -R "$APP" "$STAGE/"
+          ln -s /Applications "$STAGE/Applications"
+          hdiutil create -volname "Nexthrum" -srcfolder "$STAGE" \
+            -ov -format UDZO "dist/Nexthrum-${VERSION}-arm64.dmg" >/dev/null
 
       - name: Sign appcast
         timeout-minutes: 10
@@ -246,4 +254,4 @@ jobs:
             if gh release view "$TAG" >/dev/null 2>&1; then break; fi
             sleep 5
           done
-          gh release upload "$TAG" dist/appcast.xml dist/*.zip --clobber
+          gh release upload "$TAG" dist/appcast.xml dist/*.zip dist/*.dmg --clobber
