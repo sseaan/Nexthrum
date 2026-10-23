@@ -19,6 +19,25 @@ devlog/                   每日进展
 
 ## 3. 开发环境
 
+### 依赖版本约束（Tauri 插件）
+
+`tauri-cli` 在构建前会校验「npm 插件包」与「对应 Rust crate」的 major.minor 必须一致，否则直接拒绝构建：
+
+| npm 包（`apps/windows/package.json`） | Rust crate（`apps/windows/src-tauri/Cargo.toml`） |
+|---|---|
+| `@tauri-apps/api` | `tauri` |
+| `@tauri-apps/plugin-notification` | `tauri-plugin-notification` |
+| `@tauri-apps/plugin-autostart` | `tauri-plugin-autostart` |
+| `@tauri-apps/plugin-updater` | `tauri-plugin-updater` |
+| `@tauri-apps/plugin-process` | `tauri-plugin-process` |
+
+约定：
+
+- npm 侧写**精确版本**（`"2.7.0"`，不带 `^`/`~`），否则 `npm install` 在真机上会把 npm 包拉到新 minor，而 `Cargo.lock` 仍是旧 minor，复现该报错。
+- Rust 侧用 `~` 锁同 minor（`"~2.7.0"`），允许补丁更新但不能跳 minor。
+- 校验命令：`npm --prefix apps/windows run check:tauri-versions`（脚本 `scripts/check-tauri-plugin-versions.mjs`，CI 的 Windows job 已接入）。
+- 升级插件时必须成对修改：先改 `package.json` + `Cargo.toml`，再 `npm install` 与 `cargo update -p <crate>`，最后跑 `check:tauri-versions`。
+
 ### Windows 当前应用
 - Node.js 20 LTS、Rust stable、Visual Studio C++ Build Tools、WebView2。
 - 安装依赖：`npm --prefix apps/windows ci`。

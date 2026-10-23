@@ -65,6 +65,11 @@ jobs:
             console.log(`Version ${pkg}`);
           '
 
+      # tauri-cli refuses to build when an npm plugin and its Rust crate sit on
+      # different minors; this catches it before the release job does.
+      - name: Tauri plugin version alignment
+        run: npm --prefix apps/windows run check:tauri-versions
+
       - name: Frontend dependencies
         working-directory: apps/windows
         run: npm ci

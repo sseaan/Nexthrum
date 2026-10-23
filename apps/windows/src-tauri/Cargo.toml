@@ -20,11 +20,14 @@ tauri-build = { version = "2", features = [] }
 nexthrum-core = { path = "../../../crates/nexthrum-core" }
 nexthrum-gotify = { path = "../../../crates/nexthrum-gotify" }
 nexthrum-storage = { path = "../../../crates/nexthrum-storage" }
-tauri = { version = "2", features = ["tray-icon"] }
-tauri-plugin-notification = "2"
-tauri-plugin-autostart = "2"
-tauri-plugin-updater = "2"
-tauri-plugin-process = "2"
+# Tauri plugin crates must stay on the same major.minor as their npm
+# counterparts (tauri-cli enforces this). `~` keeps patches free but stops the
+# minor from drifting away from package.json.
+tauri = { version = "~2.12.5", features = ["tray-icon"] }
+tauri-plugin-notification = "~2.7.0"
+tauri-plugin-autostart = "~2.7.0"
+tauri-plugin-updater = "~2.14.0"
+tauri-plugin-process = "~2.4.0"
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
