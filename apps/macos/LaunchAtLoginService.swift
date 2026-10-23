@@ -34,24 +34,26 @@ final class LaunchAtLoginService: ObservableObject {
         }
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            var failure: String?
+            let outcome: Result<Void, Error>
             do {
                 if enabled {
                     try SMAppService.mainApp.register()
                 } else {
                     try SMAppService.mainApp.unregister()
                 }
+                outcome = .success(())
             } catch {
-                failure = error.localizedDescription
+                outcome = .failure(error)
             }
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                if let failure {
-                    self.apply(SMAppService.mainApp.status)
-                    self.errorMessage = Self.describe(failure: failure)
-                } else {
+                switch outcome {
+                case .success:
                     // The system updates its login-item list asynchronously.
                     self.watchForSettledStatus(remainingChecks: 10)
+                case .failure(let error):
+                    self.apply(SMAppService.mainApp.status)
+                    self.errorMessage = Self.describe(failure: error.localizedDescription)
                 }
             }
         }
@@ -105,8 +107,20 @@ enum LaunchAtLoginPresentation {
     }
 
     static func describe(failure: String) -> String {
-        let inApplications = Bundle.main.bundlePath.hasPrefix("/Applications/")
-        let hint = inApplications ? "" : L10n.t("move_into_applications_hint")
+        describe(failure: failure, bundlePath: Bundle.main.bundlePath)
+    }
+
+    /// A bundle outside /Applications cannot register itself reliably.
+    static func needsApplicationsHint(bundlePath: String) -> Bool {
+        !bundlePath.hasPrefix("/Applications/")
+    }
+
+    /// `bundlePath` is injectable so the hint logic is testable without relying
+    /// on where the test runner happens to live.
+    static func describe(failure: String, bundlePath: String) -> String {
+        let hint = needsApplicationsHint(bundlePath: bundlePath)
+            ? L10n.t("move_into_applications_hint")
+            : ""
         return L10n.t("launch_at_login_failed", failure, hint)
     }
 }

@@ -85,15 +85,22 @@ final class LaunchAtLoginDescriptionTests: XCTestCase {
         XCTAssertTrue(missing.localizedCaseInsensitiveContains("/Applications"))
     }
 
-    func testFailureMentionsMovingIntoApplicationsWhenNotInstalled() {
-        let message = LaunchAtLoginPresentation.describe(failure: "Operation not permitted")
-        XCTAssertTrue(message.localizedCaseInsensitiveContains("launch at login"))
-        XCTAssertTrue(message.localizedCaseInsensitiveContains("Operation not permitted"))
-        // The hint is bundle-path dependent; assert it only when applicable.
-        if !Bundle.main.bundlePath.hasPrefix("/Applications/") {
-            XCTAssertTrue(message.localizedCaseInsensitiveContains("/Applications"))
-        }
+    func testApplicationsHintIsOnlyShownForBundlesOutsideApplications() {
+        XCTAssertTrue(LaunchAtLoginPresentation.needsApplicationsHint(
+            bundlePath: "/Users/someone/Downloads/NexthrumMac.app"
+        ))
+        XCTAssertTrue(LaunchAtLoginPresentation.needsApplicationsHint(
+            bundlePath: "/Volumes/Nexthrum/NexthrumMac.app"
+        ))
+        XCTAssertFalse(LaunchAtLoginPresentation.needsApplicationsHint(
+            bundlePath: "/Applications/NexthrumMac.app"
+        ))
     }
+
+    // Note: the message text itself is not asserted here. XCTest runs without the
+    // app's localisation resources (Bundle.main is the test runner), so the
+    // formatted string would only contain raw keys. The decision logic that
+    // matters — whether the /Applications hint applies — is covered above.
 }
 
 final class MessageDateFormattingTests: XCTestCase {
