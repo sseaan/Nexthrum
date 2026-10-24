@@ -52,52 +52,39 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "${{ github.ref_name }}"
           releaseBody: |
-            ## Nexthrum 2.0.0
+            ## 简介
 
-            首个跨平台版本：Windows 与 macOS 共用一套 Rust 内核。
-            First cross-platform release: one shared Rust core behind both native clients.
+            Nexthrum 是连接 Gotify 服务器的桌面消息客户端：Windows 使用 Tauri + React，macOS 使用 SwiftUI，两端共用一套 Rust 内核（消息、存储、连接规则只实现一次）。消息实时到达，支持按来源筛选与搜索，未读数以本地 SQLite 快照为准。
 
-            ### 下载 / Downloads
+            ## 下载文件
 
-            | 平台 / Platform | 文件 / File | 说明 / Notes |
-            |---|---|---|
-            | Windows | `Nexthrum_2.0.0_x64-setup.exe` | NSIS 安装包，按当前用户安装 / per-user installer |
-            | Windows | `Nexthrum_2.0.0_x64-portable.zip` | 便携版，解压即用 / portable, extract and run |
-            | macOS (arm64) | `Nexthrum-2.0.0-arm64.dmg` | 拖入 Applications 即可 / drag to Applications |
-            | macOS (arm64) | `Nexthrum-2.0.0.zip` | 应用包压缩版，供 Sparkle 更新使用 / app archive used by Sparkle |
-            | 自动更新 / Updates | `latest.json` · `appcast.xml` | 由应用自动使用 / consumed by the apps |
+            | 文件 | 用途 |
+            |---|---|
+            | `Nexthrum_<version>_x64-setup.exe` | Windows 安装包，按当前用户安装，无需管理员权限 |
+            | `Nexthrum_<version>_x64-portable.zip` | Windows 便携版，解压后双击 `Nexthrum.exe` 直接运行 |
+            | `Nexthrum-<version>-arm64.dmg` | macOS（Apple Silicon）安装镜像，打开后拖入「应用程序」 |
+            | `Nexthrum-<version>.zip` | macOS 应用包压缩版，供 Sparkle 自动更新使用 |
+            | `latest.json`、`appcast.xml` | 更新清单，由应用自动读取，无需手动下载 |
 
-            ### 系统要求 / Requirements
-            - Windows 10 1809+ / Windows 11（WebView2，Win11 已内置 / built into Win11）
-            - macOS 14+，Apple Silicon（arm64）
+            > Windows 安装包未做 Authenticode 签名，首次运行若出现 SmartScreen 提示，选择「更多信息 → 仍要运行」。
+            > macOS 未做公证，首次打开请右键 → 打开（或执行 `xattr -dr com.apple.quarantine /Applications/Nexthrum.app`）。
 
-            ### 安装说明 / Installation
-            - **Windows**：安装包未做 Authenticode 签名，首次运行会提示 SmartScreen，选择「更多信息 → 仍要运行」。
-              Unsigned installer: choose "More info → Run anyway" on first launch.
-            - **macOS**：未做公证，首次打开需右键 → 打开，或执行
-              `xattr -dr com.apple.quarantine /Applications/Nexthrum.app`。
-              由 Sparkle 安装的更新不带隔离标记，后续升级不会再提示。
-              Not notarized: right-click → Open the first time; Sparkle updates are not quarantined.
-            - 从 2.0 早期构建升级：请先删除旧的 `NexthrumMac.app`（bundle id 与数据不变）。
+            ## 系统要求
 
-            ### 快速开始 / Quick Start
-            1. 启动 Nexthrum：窗口打开，托盘 / 菜单栏出现图标。
-            2. 在设置中填入 Gotify 服务器地址与客户端令牌（Gotify 网页端 → Clients）。
-            3. 点击「测试连接」，然后保存；消息会实时出现在列表并触发系统通知。
-            4. 首次运行有引导页，可跳过并稍后配置。
-              First launch shows a short onboarding guide; it can be skipped.
+            - Windows 10 1809+ 或 Windows 11（依赖 WebView2，Win11 与新版 Win10 已内置）
+            - macOS 14.0 Sonoma 及以上，Apple Silicon（arm64）
+            - 可访问的 Gotify 服务器，以及其在 Gotify 网页端「Clients」中创建的客户端令牌
 
-            ### 本版要点 / Highlights
-            - 共享 Rust 内核（Core 用例、Gotify 客户端、SQLite、UniFFI 桥接）
-            - 卡片式消息列表、搜索、来源筛选、托盘未读红点、菜单栏面板
-            - 凭据存于 Windows 凭据管理器 / macOS 钥匙串，不写入设置 JSON
-            - 自动更新：Windows 走 `latest.json`，macOS 走 Sparkle `appcast.xml`
-            - 中英双语界面（Windows 可切换，macOS 跟随系统）
-            - 许可：AGPL-3.0
+            ## 本版亮点
 
-            ### 已知限制 / Known limitations
-            - Windows 无 Authenticode 签名；macOS 无 Developer ID 与公证（首次安装提示无法避免）。
-            - macOS 通知、登录项与退出清理仍需实机验收记录。
+            - Windows 界面全面重做：竖版窗口（默认 400×680）、类 macOS 扁平视觉、标题栏含 Logo 与最小化/最大化/关闭
+            - 消息列表改为细分割线的扁平行，标题、正文、来源徽标三档层级清晰，未读用圆点 + 字重 + 强调色时间表达
+            - 主题独立为切换按钮（深色 / 白天），设置入口改为独立文字按钮，不再与主题混淆
+            - 设置页按 macOS 设置风格分组：服务器连接、启动与窗口、外观、免打扰
+            - 修复 Windows 全站样式失效（未分层 CSS 覆盖 Tailwind 工具类）、空白窗口（开发端口被 Hyper-V 保留）等问题
+            - Tauri 插件版本成对锁定，新增 `check:tauri-versions` 校验并接入 CI
+            - macOS：可在设置中隐藏程序坞图标（仅保留菜单栏入口）、切换界面语言
+
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.target }}

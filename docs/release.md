@@ -115,7 +115,19 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 
 **macOS**：通过 Sparkle 自动更新（见 3.1），与 Windows 的 `tauri-plugin-updater` 各自使用独立清单与密钥。
 
-## 5. 发布前检查清单
+## 5. 发布说明结构
+
+`.github/workflows/build.yml` 的 `releaseBody` 是发布说明模板，**只保留四段**，其余内容（长段安装教程、双语长文、已知限制清单）不写进 Release：
+
+| 段落 | 内容 |
+|---|---|
+| 简介 | 一句话定位：Windows/macOS 双前端 + 共享 Rust 内核；核心能力（实时消息、来源筛选、搜索、未读快照） |
+| 下载文件 | 表格逐项说明每个产物的用途（安装包 / 便携版 / DMG / Sparkle zip / 更新清单），并用引用块写清未签名与未公证的首次运行提示 |
+| 系统要求 | Windows 版本与 WebView2、macOS 版本与架构、服务器与令牌前提 |
+| 本版亮点 | 面向用户的改动要点，按平台分组，不写内部实现细节 |
+
+## 6. 发布前检查清单
+
 
 - [ ] 三处版本号一致，`ci.yml` 双平台检查通过
 - [ ] `cargo test --workspace`、`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows run build` 通过
@@ -128,9 +140,9 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 - [ ] macOS：Keychain 集成测试通过（`SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) NEXTHRUM_KEYCHAIN_TESTS'`，见 `apps/macos/Tests/KeychainCredentialStoreTests.swift`）
 - [ ] Release 资产齐全：`Nexthrum_<v>_x64-setup.exe`、`Nexthrum_<v>_x64-portable.zip`、`Nexthrum-<v>-arm64.dmg`、`Nexthrum-<v>.zip`、`latest.json`、`appcast.xml`，且没有 `*.sig`
 - [ ] `latest.json` 含 `windows-x86_64` / `windows-x86_64-nsis` 条目与签名；`appcast.xml` 含 `sparkle:version` 与 `edSignature`
-- [ ] 发布说明包含未签名/未公证提示与系统要求
+- [ ] 发布说明符合第 5 节四段结构（简介 / 下载文件 / 系统要求 / 本版亮点），未签名与未公证提示写在「下载文件」段
 
-## 6. 测试版构建（不进入更新通道）
+## 7. 测试版构建（不进入更新通道）
 
 UI 改动需要在真实 Windows 机器上验收，但正式发布链路（tag → `build.yml` → `latest.json`/`appcast.xml`）不该为每次试验重打版本号。
 `.github/workflows/test-build.yml` 专门解决这件事：
@@ -158,7 +170,7 @@ UI 改动需要在真实 Windows 机器上验收，但正式发布链路（tag �
 
 **清理**：预发布可随时删除；`gh release list --limit 50` 查看，`gh release delete test-<sha7> --cleanup-tag --yes` 删除。
 
-## 7. 相关文件
+## 8. 相关文件
 
 - `.github/workflows/ci.yml`：每次推送的双平台检查
 - `.github/workflows/build.yml`：标签触发的双平台发布（Windows 包 + macOS DMG/zip/appcast）
