@@ -1,6 +1,6 @@
 # Windows 端 UI 重构与视觉优化规划
 
-> 状态：阶段 1–3 已实施（详见文末「实施进展」）  
+> 状态：阶段 1–4 代码与文档已实施，待 Windows 测试版验收（详见文末「实施进展」）  
 > 适用范围：`apps/windows/src`、`apps/windows/src-tauri` 以及 Windows 端设计规范  
 > 目标：在不改动已验证的 Rust 业务内核、WebSocket 和系统通知链路的前提下，修复 Windows 前端的布局、窗口壳层、视觉质量和设置入口问题。
 
@@ -368,9 +368,17 @@ npm --prefix apps/windows run build
 - [x] `UpdateBanner`：新 Token、图标与按钮，内容与 `max-w-3xl` 对齐
 - [x] i18n：新增 `window.*`、`appearance.*`、`message.openSettings` 与设置项说明文案（en + zh-CN）
 
+**阶段 4：验收工具链**
+
+- [x] `.github/workflows/test-build.yml`：`test/**` 推送或手动触发，构建 Windows 安装包 + 便携版，产出 `test-<sha7>` 预发布（不进 `latest.json`，不影响已安装正式版）
+- [x] `docs/windows-testing.md`：新增「获取测试版」章节，重排为 10 节（获取 → 环境 → 启动 → UI 验收 → 安装包验收 → 截图 → 反馈 → 常见问题 → 收尾）
+- [x] `docs/release.md`：新增「测试版构建（不进入更新通道）」，说明触发方式、产物命名、清理命令
+- [x] 开发者模式下的浏览器预览不再报错：`isTauriRuntime()` 守卫 + `browser preview` 标记与提示条
+
 ### 待完成
 
-- [ ] Windows 实机验证：最大化/还原、双击标题栏、拖动、125%/150% DPI、400×300 极限尺寸
+- [ ] Windows 测试版实机验收：标题栏三按钮/双击/拖动、125%/150% DPI、400×300 与最大化布局
 - [ ] 按第 7 节矩阵补齐深色/白天两套截图
-- [ ] 如需系统主题自动切换之外的额外偏好（例如强制高对比度），再扩展设置项
+- [ ] 依据截图做像素级修正（间距、字号、对齐）
+- [ ] 如需系统主题之外的额外偏好（例如强制高对比度），再扩展设置项
 

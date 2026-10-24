@@ -130,10 +130,39 @@ Keychain 集成测试默认跳过，需要编译期开关（运行期环境变�
 - [ ] `latest.json` 含 `windows-x86_64` / `windows-x86_64-nsis` 条目与签名；`appcast.xml` 含 `sparkle:version` 与 `edSignature`
 - [ ] 发布说明包含未签名/未公证提示与系统要求
 
-## 6. 相关文件
+## 6. 测试版构建（不进入更新通道）
+
+UI 改动需要在真实 Windows 机器上验收，但正式发布链路（tag → `build.yml` → `latest.json`/`appcast.xml`）不该为每次试验重打版本号。
+`.github/workflows/test-build.yml` 专门解决这件事：
+
+**触发方式**
+
+| 方式 | 行为 |
+|---|---|
+| 推送到 `test/**` 分支 | 自动构建；改动涉及 `apps/windows/**`、`crates/**` 或该工作流本身时触发 |
+| Actions → *Test build (Windows)* → Run workflow | 手动构建，可选是否生成预发布 |
+
+**产物与命名**
+
+| 文件 | 说明 |
+|---|---|
+| `Nexthrum_<version>_x64-test.<sha7>-setup.exe` | NSIS 安装包（复用正式版安装器配置） |
+| `Nexthrum_<version>_x64-test.<sha7>-portable.zip` | 便携版，解压即用，推荐测试用 |
+
+- 每次构建同时上传 Actions artifact（保留 14 天），并创建/更新**预发布** `test-<sha7>` 附加两个文件。
+- 版本号保持 `package.json` 里的正式版本，**测试版不改版本号**；区分只看 tag 与文件名后缀。
+- 预发布不会出现在 `releases/latest`，因此 `latest.json` 与 Sparkle `appcast.xml` 均不受影响，已安装的正式版**不会**被升级到测试版。
+- 与正式包一样未做 Authenticode 签名，首次运行需在 SmartScreen 选择「更多信息 → 仍要运行」。
+
+**验证清单**：`docs/windows-testing.md` 第 5 节（UI）与第 6 节（安装包：通知身份、自启动、凭据、卸载）。
+
+**清理**：预发布可随时删除；`gh release list --limit 50` 查看，`gh release delete test-<sha7> --cleanup-tag --yes` 删除。
+
+## 7. 相关文件
 
 - `.github/workflows/ci.yml`：每次推送的双平台检查
 - `.github/workflows/build.yml`：标签触发的双平台发布（Windows 包 + macOS DMG/zip/appcast）
+- `.github/workflows/test-build.yml`：Windows 测试版构建（`test/**` 推送或手动触发，产出预发布）
 - `apps/windows/src-tauri/tauri.conf.json`：bundle 与安装器配置
 - `apps/macos/Nexthrum.xcconfig`：macOS 架构、部署目标与默认签名开关
 - `apps/macos/Vendor/Sparkle.framework`：macOS 自动更新框架

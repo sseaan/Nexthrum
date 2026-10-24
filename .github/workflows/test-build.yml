@@ -1,0 +1,137 @@
+name: Test build (Windows)
+
+# Test builds exist so UI work can be checked on a real machine without
+# touching the release pipeline: artifacts are attached to a *prerelease* tag,
+# so `releases/latest/download/latest.json` (the updater endpoint) keeps
+# pointing at the last real release.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Create/update a prerelease with the artifacts"
+        type: boolean
+        default: true
+  push:
+    branches: ["test/**"]
+    paths:
+      - "apps/windows/**"
+      - "crates/**"
+      - "scripts/check-tauri-plugin-versions.mjs"
+      - ".github/workflows/test-build.yml"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    name: Windows test build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/windows/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Install frontend dependencies
+        working-directory: apps/windows
+        run: npm ci
+
+      - name: Check Tauri plugin versions
+        run: npm --prefix apps/windows run check:tauri-versions
+
+      - name: Build app and NSIS installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npm --prefix apps/windows run tauri build -- --target x86_64-pc-windows-msvc
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./apps/windows/package.json').version")
+          SHA=$(git rev-parse --short=7 HEAD)
+          SUFFIX="test.${SHA}"
+          mkdir -p dist
+
+          SETUP=$(ls target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe | head -1)
+          cp "$SETUP" "dist/Nexthrum_${VERSION}_x64-${SUFFIX}-setup.exe"
+
+          EXE="target/x86_64-pc-windows-msvc/release/nexthrum.exe"
+          test -f "$EXE" || { echo "ERROR: release exe missing at $EXE"; exit 1; }
+          cp "$EXE" Nexthrum.exe
+          7z a "dist/Nexthrum_${VERSION}_x64-${SUFFIX}-portable.zip" Nexthrum.exe > /dev/null
+
+          {
+            echo "SUFFIX=$SUFFIX"
+            echo "VERSION=$VERSION"
+            echo "TAG=test-${SHA}"
+          } >> "$GITHUB_ENV"
+
+          ls -lh dist/
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexthrum-windows-${{ env.SUFFIX }}
+          path: dist/*
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Publish prerelease
+        # Releases are created for branch pushes and for dispatch runs that ask
+        # for them; the artifact upload above always happens.
+        if: github.event_name == 'push' || inputs.publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NOTES=$(cat <<EOF
+          Windows 测试版 / Windows test build — \`${TAG}\`
+
+          基于 \`${GITHUB_REF_NAME}\` @ \`${GITHUB_SHA:0:7}\`，版本号仍为 \`${VERSION}\`（测试版不改版本号）。
+
+          | 文件 | 说明 |
+          |---|---|
+          | \`Nexthrum_${VERSION}_x64-${SUFFIX}-setup.exe\` | NSIS 安装包（未签名，SmartScreen 选择「更多信息 → 仍要运行」） |
+          | \`Nexthrum_${VERSION}_x64-${SUFFIX}-portable.zip\` | 便携版，解压双击 \`Nexthrum.exe\` 即可，**推荐用于测试** |
+
+          ### 本次要验证的内容
+
+          见 \`docs/windows-testing.md\` 第 4 节：标题栏（三按钮 / 双击 / 拖动）、高 DPI、400×300 与最大化布局、深色与白天主题、设置入口（头部 / 托盘 / 引导页）、消息卡片与空状态。
+
+          ### 注意
+
+          - 这是**预发布**，不会进入自动更新通道（\`latest.json\` 不变，已安装的正式版不会被升级到测试版）。
+          - 未做 Authenticode 签名，首次运行会提示 SmartScreen。
+          - 便携版与安装版共用 \`%APPDATA%\\Nexthrum\` 数据目录，可用它验证而不覆盖已安装版本。
+
+          反馈请附截图（\`screenshot/\`）与复现步骤。
+          EOF
+          )
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" --notes "$NOTES"
+          else
+            gh release create "$TAG" \
+              --prerelease \
+              --title "Windows test build $TAG" \
+              --target "$GITHUB_SHA" \
+              --notes "$NOTES"
+          fi
+
+          gh release upload "$TAG" dist/* --clobber
+          echo "Prerelease: $(gh release view "$TAG" --json url --jq .url)"

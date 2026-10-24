@@ -13,9 +13,25 @@
 
 **结论：UI 问题在开发模式改，宿主行为必须在安装包里验。**
 
-## 2. 环境准备
+## 2. 获取测试版
 
-### 2.1 必需
+不需要自己编译：`test/**` 分支的每次推送都会由 `.github/workflows/test-build.yml` 产出预发布。
+
+1. 打开仓库 **Actions → Test build (Windows)**，或直接看 **Releases → 带 `Pre-release` 标记的 `test-<sha7>`**
+2. 下载 `Nexthrum_<version>_x64-test.<sha7>-portable.zip`（**推荐**，解压双击 `Nexthrum.exe`，不覆盖已安装版本）
+3. 需要验证安装/卸载路径时改用 `...-setup.exe`
+
+要点：
+
+- 预发布不进自动更新通道，已安装的正式版不会被升级
+- 未签名，首次运行 SmartScreen 选择「更多信息 → 仍要运行」
+- 便携版与安装版共用 `%APPDATA%\Nexthrum`，测试完可以只删这个目录回到初始状态
+- 想验证「首次引导页」：先删 `%APPDATA%\Nexthrum\` 与凭据管理器里的 `Nexthrum/GotifyClientToken`
+
+## 3. 环境准备（自行编译时）
+
+
+### 3.1 必需
 
 ```powershell
 node -v      # >= 20 LTS
@@ -35,7 +51,7 @@ rustup default stable-x86_64-pc-windows-msvc
 
 WebView2 在 Win11 与 Win10 21H2+ 已内置；未装则 `winget install Microsoft.EdgeWebView2Runtime`。
 
-### 2.2 取代码
+### 3.2 取代码
 
 ```powershell
 git clone <repo-url> Nexthrum
@@ -46,9 +62,9 @@ npm --prefix apps/windows ci
 
 不要把 macOS 上的 `node_modules`、`target/`、`dist/` 拷过来。
 
-## 3. 启动与调试
+## 4. 启动与调试
 
-### 3.1 开发模式
+### 4.1 开发模式
 
 ```powershell
 $env:RUST_LOG="debug"            # 可选：输出后端分级日志
@@ -63,7 +79,7 @@ npm --prefix apps/windows run tauri dev
 - 是否出现 `scrollWidth > clientWidth`（横向溢出）
 - 标题栏元素宽高、消息卡片内边距是否符合预期
 
-### 3.2 安装包
+### 4.2 安装包
 
 ```powershell
 npm --prefix apps/windows run tauri build
@@ -71,13 +87,13 @@ npm --prefix apps/windows run tauri build
 
 产物：`apps/windows/src-tauri/target/release/bundle/nsis/Nexthrum_<version>_x64-setup.exe`。
 
-安装到 `%LOCALAPPDATA%\Nexthrum`，安装后从开始菜单启动，按第 5 节验证宿主能力。
+安装到 `%LOCALAPPDATA%\Nexthrum`，安装后从开始菜单启动，按第 6 节验证宿主能力。
 
-## 4. UI 验收清单（开发模式）
+## 5. UI 验收清单
 
 逐项勾选；发现异常时记录「场景 + 期望 + 实际 + 截图」。
 
-### 4.1 标题栏
+### 5.1 标题栏
 
 | # | 操作 | 期望 |
 |---|---|---|
@@ -96,7 +112,7 @@ npm --prefix apps/windows run tauri build
 
 > 若第 3–6 项图标或状态不同步，说明 `onResized` 同步失效；若第 7–9 项互相干扰，说明拖动区与按钮区未分离。
 
-### 4.2 高 DPI
+### 5.2 高 DPI
 
 设置 → 系统 → 屏幕 → 缩放，依次切 **100% / 125% / 150%**：
 
@@ -110,7 +126,7 @@ npm --prefix apps/windows run tauri build
 
 切换缩放后建议关闭窗口再从托盘打开一次，排除 WebView2 缩放缓存。
 
-### 4.3 极限尺寸
+### 5.3 极限尺寸
 
 最小尺寸由代码固定为 400×300（`min_inner_size`），拉不到更小是正常行为。
 
@@ -120,7 +136,7 @@ npm --prefix apps/windows run tauri build
 | 800×600（默认） | 设置按钮显示「设置」文字；列表左右留白一致；消息卡片间距均匀 |
 | 最大化（1920/2560 宽） | 内容居中在 `max-w-3xl`（约 768px），标题栏与页面头部背景铺满，正文不被拉成超长行 |
 
-### 4.4 主题
+### 5.4 主题
 
 | # | 操作 | 期望 |
 |---|---|---|
@@ -134,7 +150,7 @@ npm --prefix apps/windows run tauri build
 | 8 | 白天模式：看错误提示 | 红字对比度足够，带警示图标 |
 | 9 | 两种主题下切换页面 | 布局无位移、无高度跳动 |
 
-### 4.5 设置入口
+### 5.5 设置入口
 
 | # | 入口 | 期望 |
 |---|---|---|
@@ -144,7 +160,7 @@ npm --prefix apps/windows run tauri build
 | 4 | 消息为空时的空状态 →「打开设置」 | 打开设置页 |
 | 5 | 设置页 →「返回」 | 回到消息页，滚动位置合理 |
 
-### 4.6 消息与列表
+### 5.6 消息与列表
 
 | # | 场景 | 期望 |
 |---|---|---|
@@ -157,7 +173,7 @@ npm --prefix apps/windows run tauri build
 | 7 | 长标题 + 长正文 | 标题单行截断，正文最多三行，时间不被挤走 |
 | 8 | 全部清空 | 弹窗确认；勾选「同时删除服务器」行为正确；失败有明确报错 |
 
-## 5. 安装包验收清单
+## 6. 安装包验收清单
 
 | # | 场景 | 期望 |
 |---|---|---|
@@ -180,7 +196,7 @@ Get-Content "$env:APPDATA\Nexthrum\settings.json"     # 不应出现 client_toke
 dir "$env:APPDATA\Nexthrum\nexthrum_messages.db"
 ```
 
-## 6. 截图规范
+## 7. 截图规范
 
 - 单窗口：`Alt + PrtScn`（复制当前窗口）或 `Win + Shift + S` 框选
 - 需要保留 DPI 信息：`Win + PrtScn`，整屏原分辨率存到 `图片\屏幕截图`
@@ -190,7 +206,7 @@ dir "$env:APPDATA\Nexthrum\nexthrum_messages.db"
 
 每个场景深色、白天各一张，方便对比主题差异。
 
-## 7. 问题反馈模板
+## 8. 问题反馈模板
 
 ```text
 场景：设置页 / 白天 / 125% DPI / 800x600
@@ -203,9 +219,9 @@ dir "$env:APPDATA\Nexthrum\nexthrum_messages.db"
 
 不需要自行定位到代码；带场景与截图的反馈就足够修复。
 
-## 8. 常见问题
+## 9. 常见问题
 
-### 8.1 窗口完全空白（优先排查）
+### 9.1 窗口完全空白（优先排查）
 
 先用**空白区域的背景色**判断问题层级：
 
@@ -225,7 +241,7 @@ npm run dev
 
 然后在 Edge/Chrome 打开 `http://localhost:1520`（端口以 `DEV_PORT` 为准）：
 
-- 浏览器能正常显示界面 → 前端没问题，问题在 Tauri 窗口或 WebView2（继续看 8.2）
+- 浏览器能正常显示界面 → 前端没问题，问题在 Tauri 窗口或 WebView2（继续看 9.2）
 - 浏览器也空白 → 前端运行时错误，浏览器 Console 会直接给出文件和行号
 
 > 浏览器里只是**渲染预览**：标题栏会显示 `browser preview` 标记，三个窗口按钮为禁用态，
@@ -236,7 +252,7 @@ npm run dev
 > 未做运行时判断就调用了 `@tauri-apps/api`（`window.__TAURI_INTERNALS__` 不存在），这属于要修的缺陷，
 > 用 `isTauriRuntime()`（`src/utils/tauriEnv.ts`）做守卫。
 
-### 8.2 端口与 Hyper-V 占用
+### 9.2 端口与 Hyper-V 占用
 
 `tauri.conf.json` 的 `devUrl` 是 `http://localhost:1430`，`vite.config.ts` 也必须用 `1430` 且保持
 `strictPort: true`：两边不一致或端口被占时，窗口会指向空地址而显示空白。**不要**为了“先跑起来”把
@@ -334,7 +350,7 @@ netsh int ipv4 delete excludedportrange protocol=tcp startport=1430 numberofport
 | 端口正常但仍空白（IPv6/IPv4 解析差异） | 把 `host: host \|\| false` 改成 `host: host \|\| "127.0.0.1"`，并把 `devUrl` 改成 `http://127.0.0.1:1430` |
 | WebView2 缺失 | `winget install Microsoft.EdgeWebView2Runtime` |
 
-### 8.3 构建与环境类
+### 9.3 构建与环境类
 
 | 现象 | 处理 |
 |---|---|
@@ -344,9 +360,9 @@ netsh int ipv4 delete excludedportrange protocol=tcp startport=1430 numberofport
 | 中文字体发虚 | 记录缩放比例与截图，通常是 WebView2 缩放或字体回退问题 |
 | dev 模式通知发送者为空/乱码 | dev 与安装包的 AppUserModelID 不同，属预期；以安装包为准 |
 
-## 9. 测试完成后
+## 10. 测试完成后
 
-1. 截图放入 `screenshot/`，按第 6 节命名
+1. 截图放入 `screenshot/`，按第 7 节命名
 2. 在本手册对应条目后记录 `通过 / 失败 + 说明`
-3. 失败项汇总成第 7 节模板列表回传
+3. 失败项汇总成第 8 节模板列表回传
 4. 修复后在本手册勾选复测结果，并在 `devlog/YYYY-MM-DD.md` 记录结论
