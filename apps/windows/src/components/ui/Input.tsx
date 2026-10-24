@@ -27,21 +27,57 @@ export function Field({ label, hint, htmlFor, children, className }: FieldProps)
   );
 }
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+type InputSize = "sm" | "md";
+
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+  size?: InputSize;
+  /** Reserve room for a leading icon slot. */
+  leading?: boolean;
+  /** Reserve room for a trailing button slot. */
+  trailing?: boolean;
   invalid?: boolean;
 }
 
-/** Text input with a visible focus ring that works in both themes. */
-export function Input({ className, invalid, ...rest }: InputProps) {
+const HEIGHTS: Record<InputSize, string> = {
+  sm: "h-7 text-xs",
+  md: "h-8 text-[13px]",
+};
+
+/**
+ * Reserves icon space with explicit padding classes instead of letting callers
+ * override base utilities: Tailwind emits same-property utilities in source
+ * order, so a `className="pl-7"` would not reliably beat the base `px-2.5`.
+ */
+function padding(size: InputSize, leading?: boolean, trailing?: boolean): string {
+  const left = leading ? (size === "sm" ? "pl-6" : "pl-7") : "pl-2.5";
+  const right = trailing ? (size === "sm" ? "pr-6" : "pr-7") : "pr-2.5";
+  return `${left} ${right}`;
+}
+
+/**
+ * Filled field instead of an outlined box: the macOS text field reads as a
+ * slightly darker well on the surface, with the focus ring as the only chrome.
+ */
+export function Input({
+  className,
+  size = "md",
+  leading,
+  trailing,
+  invalid,
+  ...rest
+}: InputProps) {
   return (
     <input
       className={cx(
-        "h-9 w-full rounded-lg border bg-[var(--color-surface)] px-3 text-sm",
-        "text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]",
-        "transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/35",
+        "w-full rounded-lg border border-transparent",
+        "bg-[var(--color-surface-hover)] text-[var(--color-text)]",
+        "placeholder:text-[var(--color-text-muted)]",
+        "transition-colors focus:outline-none focus:ring-2",
         invalid
-          ? "border-[var(--color-danger)] focus:border-[var(--color-danger)]"
-          : "border-[var(--color-border)] hover:border-[var(--color-border-strong)] focus:border-[var(--color-primary)]",
+          ? "ring-[var(--color-danger)]/35 focus:bg-[var(--color-surface)]"
+          : "focus:bg-[var(--color-surface)] focus:ring-[var(--color-primary)]/30 hover:bg-[var(--color-border)]/60",
+        HEIGHTS[size],
+        padding(size, leading, trailing),
         className,
       )}
       {...rest}

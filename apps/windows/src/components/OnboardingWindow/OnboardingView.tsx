@@ -84,33 +84,33 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
 
   return (
     <div className="h-full overflow-y-auto bg-[var(--color-bg)]">
-      <div className="mx-auto w-full max-w-xl space-y-5 px-5 py-6">
-        <header className="space-y-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-            <BellIcon size={20} />
-          </div>
-          <h1 className="text-lg font-semibold text-[var(--color-text)]">
+      <div className="mx-auto w-full max-w-md space-y-4 px-4 py-5">
+        <header className="space-y-1.5">
+          <span className="text-[var(--color-primary)]" aria-hidden="true">
+            <BellIcon size={22} />
+          </span>
+          <h1 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--color-text)]">
             {t.onboarding.welcome}
           </h1>
-          <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
+          <p className="text-[13px] leading-relaxed text-[var(--color-text-secondary)]">
             {t.onboarding.intro}
           </p>
         </header>
 
-        <ol className="space-y-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+        <ol className="divide-y divide-[var(--color-border)] overflow-hidden rounded-xl bg-[var(--color-surface)]">
           {steps.map((step, index) => (
-            <li key={step.title} className="flex items-start gap-2.5">
+            <li key={step.title} className="flex items-start gap-2.5 px-3.5 py-2.5">
               <span
-                className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[11px] font-bold text-[var(--color-primary)]"
+                className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-soft)] text-[10px] font-semibold text-[var(--color-primary)]"
                 aria-hidden="true"
               >
                 {index + 1}
               </span>
               <div className="min-w-0 space-y-0.5">
-                <p className="text-sm font-semibold text-[var(--color-text)]">
+                <p className="text-[13px] font-medium text-[var(--color-text)]">
                   {step.title}
                 </p>
-                <p className="text-xs leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-xs leading-relaxed text-[var(--color-text-muted)]">
                   {step.detail}
                 </p>
               </div>
@@ -118,7 +118,7 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
           ))}
         </ol>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Field label={t.onboarding.serverUrl} htmlFor="onboarding-server-url">
             <Input
               id="onboarding-server-url"
@@ -130,7 +130,6 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
               placeholder={t.onboarding.serverUrlPlaceholder}
               spellCheck={false}
               autoComplete="url"
-              autoFocus
             />
           </Field>
 
@@ -162,14 +161,14 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
             <div
               role="status"
               className={cx(
-                "flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                "flex items-start gap-1.5 rounded-lg px-2 py-1 text-[11px]",
                 testSucceeded
-                  ? "border-[var(--color-success)]/25 bg-[var(--color-success-soft)] text-[var(--color-success)]"
-                  : "border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
+                  ? "bg-[var(--color-success-soft)] text-[var(--color-success)]"
+                  : "bg-[var(--color-danger-soft)] text-[var(--color-danger)]",
               )}
             >
               <span className="mt-px flex-shrink-0">
-                {testSucceeded ? <CheckIcon size={13} /> : <AlertIcon size={13} />}
+                {testSucceeded ? <CheckIcon size={12} /> : <AlertIcon size={12} />}
               </span>
               <span className="break-words">{testResult}</span>
             </div>
@@ -178,26 +177,26 @@ export function OnboardingView({ onSkip }: { onSkip: () => void }) {
           {error && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-lg border border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] px-2.5 py-1.5 text-xs text-[var(--color-danger)]"
+              className="flex items-start gap-1.5 rounded-lg bg-[var(--color-danger-soft)] px-2 py-1 text-[11px] text-[var(--color-danger)]"
             >
               <span className="mt-px flex-shrink-0">
-                <AlertIcon size={13} />
+                <AlertIcon size={12} />
               </span>
               <span className="break-words">{error}</span>
             </div>
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="primary" onClick={handleSave} disabled={saving}>
               {saving ? t.settings.saving : t.onboarding.save}
             </Button>
-            <Button variant="secondary" onClick={handleTest} disabled={testing}>
+            <Button variant="ghost" onClick={handleTest} disabled={testing}>
               {testing ? t.onboarding.testing : t.onboarding.test}
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <div className="flex flex-wrap items-center justify-end gap-1">
             <Button variant="ghost" size="sm" onClick={onSkip}>
               {t.onboarding.skip}
             </Button>

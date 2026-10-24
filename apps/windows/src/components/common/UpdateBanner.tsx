@@ -42,13 +42,13 @@ export function UpdateBanner({ status, onInstall, onRestart, onDismiss }: Update
       role="status"
       aria-live="polite"
       className={cx(
-        "flex-shrink-0 border-b",
+        "flex-shrink-0",
         isError
-          ? "border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)]"
-          : "border-[var(--color-border)] bg-[var(--color-primary-soft)]",
+          ? "bg-[var(--color-danger-soft)]"
+          : "bg-[var(--color-primary-soft)]",
       )}
     >
-      <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-4 py-2 text-xs">
+      <div className="mx-auto flex w-full max-w-2xl items-center gap-1.5 px-3 py-1.5 text-[11px]">
         <span
           className={cx(
             "flex-shrink-0",
@@ -61,12 +61,12 @@ export function UpdateBanner({ status, onInstall, onRestart, onDismiss }: Update
         <span className="min-w-0 flex-1 break-words text-[var(--color-text)]">{message}</span>
 
         {status.kind === "available" && (
-          <Button size="sm" variant="primary" onClick={onInstall} className="h-7 px-2 text-[11px]">
+          <Button size="sm" variant="primary" onClick={onInstall} className="h-6 px-2 text-[11px]">
             {t.update.install}
           </Button>
         )}
         {status.kind === "ready" && (
-          <Button size="sm" variant="primary" onClick={onRestart} className="h-7 px-2 text-[11px]">
+          <Button size="sm" variant="primary" onClick={onRestart} className="h-6 px-2 text-[11px]">
             {t.update.restart}
           </Button>
         )}
@@ -74,7 +74,7 @@ export function UpdateBanner({ status, onInstall, onRestart, onDismiss }: Update
           <button
             type="button"
             onClick={onDismiss}
-            className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+            className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
             aria-label={t.update.dismiss}
             title={t.update.dismiss}
           >

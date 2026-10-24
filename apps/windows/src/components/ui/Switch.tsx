@@ -9,14 +9,14 @@ interface SwitchProps {
   id?: string;
 }
 
-/** Accessible on/off switch row; replaces the raw checkbox. */
+/** Compact macOS-style switch; replaces the raw checkbox. */
 export function Switch({ checked, onChange, label, description, id }: SwitchProps) {
   return (
-    <div className="flex items-start justify-between gap-4">
+    <div className="flex items-center justify-between gap-4">
       <div className="min-w-0 space-y-0.5">
         <label
           htmlFor={id}
-          className="block cursor-pointer text-sm font-medium text-[var(--color-text)]"
+          className="block cursor-pointer text-[13px] text-[var(--color-text)]"
         >
           {label}
         </label>
@@ -34,17 +34,17 @@ export function Switch({ checked, onChange, label, description, id }: SwitchProp
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={cx(
-          "relative mt-0.5 inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full border transition-colors",
+          "relative inline-flex h-[22px] w-[38px] flex-shrink-0 items-center rounded-full transition-colors",
           checked
-            ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
-            : "border-[var(--color-border-strong)] bg-[var(--color-surface-hover)]",
+            ? "bg-[var(--color-primary)]"
+            : "bg-[var(--color-border-strong)]/70",
         )}
       >
         <span
           aria-hidden="true"
           className={cx(
-            "ml-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-            checked ? "translate-x-4" : "translate-x-0",
+            "h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-[2px]",
           )}
         />
       </button>

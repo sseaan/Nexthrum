@@ -42,22 +42,20 @@ export function AppFilter() {
           : `${label}, ${total} messages`
       }
       className={cx(
-        "flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs transition-colors",
+        "flex flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-xs transition-colors",
         selected
-          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
-          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]",
+          ? "bg-[var(--color-primary-soft)] font-medium text-[var(--color-primary)]"
+          : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]",
       )}
     >
-      <span className={cx("max-w-[10rem] truncate", selected && "font-semibold")}>
-        {label}
-      </span>
-      <span className="tabular-nums opacity-75">{total}</span>
+      <span className="max-w-[9rem] truncate">{label}</span>
+      <span className="tabular-nums opacity-55">{total}</span>
       {unread > 0 && (
         <span
           className={cx(
-            "rounded-full px-1 font-bold tabular-nums",
+            "rounded px-1 text-[10px] font-semibold tabular-nums",
             selected
-              ? "bg-white/25"
+              ? "bg-[var(--color-primary)]/15"
               : "bg-[var(--color-primary-soft)] text-[var(--color-primary)]",
           )}
         >
@@ -70,7 +68,7 @@ export function AppFilter() {
   return (
     <div className="flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
       <div
-        className="mx-auto flex w-full max-w-3xl items-center gap-1.5 overflow-x-auto px-4 py-2"
+        className="mx-auto flex w-full max-w-2xl items-center gap-0.5 overflow-x-auto px-2 py-1"
         aria-label={t.filter.label}
         role="group"
       >

@@ -57,8 +57,10 @@ pub fn run() {
                 tauri::WebviewUrl::App("index.html".into()),
             )
             .title("Nexthrum")
-            .inner_size(800.0, 600.0)
-            .min_inner_size(400.0, 300.0)
+            // A message feed reads better as a tall column, matching the
+            // macOS menu-bar panel rather than a wide desktop window.
+            .inner_size(460.0, 760.0)
+            .min_inner_size(380.0, 420.0)
             .decorations(false)
             .shadow(true)
             .visible(!settings.start_hidden)

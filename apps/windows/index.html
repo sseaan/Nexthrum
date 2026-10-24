@@ -11,13 +11,24 @@
              * dev server or the bundle never loads, the window still shows a
              * readable hint instead of a blank surface.
              */
+            /*
+             * Boot colours mirror the app tokens so the window does not flash a
+             * different theme. They are overridden as soon as the bundle loads.
+             */
             html,
             body {
                 height: 100%;
                 margin: 0;
-                background: #0f1724;
-                color: #a4b3c8;
+                background: #f5f5f7;
+                color: #63636a;
                 font-family: system-ui, "Segoe UI", "Microsoft YaHei UI", sans-serif;
+            }
+            @media (prefers-color-scheme: dark) {
+                html,
+                body {
+                    background: #1c1c1e;
+                    color: #a1a1a6;
+                }
             }
             #root {
                 height: 100%;
@@ -33,7 +44,7 @@
                 text-align: center;
             }
             .boot-fallback strong {
-                color: #e8f0fb;
+                color: #1d1d1f;
                 font-size: 14px;
                 font-weight: 600;
             }
@@ -45,7 +56,12 @@
             .boot-fallback code {
                 font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
                 font-size: 11px;
-                color: #74849b;
+                color: #8e8e93;
+            }
+            @media (prefers-color-scheme: dark) {
+                .boot-fallback strong {
+                    color: #f5f5f7;
+                }
             }
         </style>
     </head>

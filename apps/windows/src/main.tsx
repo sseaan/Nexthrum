@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { initTheme } from "./theme/useTheme";
+import { enableDevPreviewIfRequested } from "./devPreview";
 import "./styles/index.css";
 
 const container = document.getElementById("root") as HTMLElement | null;
@@ -59,6 +60,12 @@ window.addEventListener("unhandledrejection", (event) => {
 // Paint the resolved theme before the first render so the window never flashes
 // the wrong palette.
 initTheme();
+
+// `?preview=demo` seeds fake messages so the list can be reviewed in a browser
+// preview, where the Rust host is absent. Dev-only.
+if (import.meta.env.DEV) {
+  enableDevPreviewIfRequested();
+}
 
 if (container) {
   ReactDOM.createRoot(container).render(

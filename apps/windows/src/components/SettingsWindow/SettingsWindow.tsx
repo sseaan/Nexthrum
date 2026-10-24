@@ -106,20 +106,16 @@ export function SettingsWindow() {
             <ChevronLeftIcon size={16} />
           </IconButton>
         }
-        actions={
-          <Button size="sm" variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? t.settings.saving : t.settings.save}
-          </Button>
-        }
+
       >
         {statusMessage && (
           <div
             role="status"
             className={cx(
-              "mt-2 flex items-start gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+              "mt-1.5 flex items-start gap-1.5 rounded-lg px-2 py-1 text-[11px]",
               statusIsError
-                ? "border-[var(--color-danger)]/25 bg-[var(--color-danger-soft)] text-[var(--color-danger)]"
-                : "border-[var(--color-success)]/25 bg-[var(--color-success-soft)] text-[var(--color-success)]",
+                ? "bg-[var(--color-danger-soft)] text-[var(--color-danger)]"
+                : "bg-[var(--color-success-soft)] text-[var(--color-success)]",
             )}
           >
             <span className="mt-px flex-shrink-0">
@@ -131,7 +127,7 @@ export function SettingsWindow() {
       </PageHeader>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-5">
+        <div className="mx-auto w-full max-w-xl space-y-4 px-3 py-3">
           <Section title={t.settings.serverConnection}>
             <Field label={t.settings.serverUrl} htmlFor="settings-server-url">
               <Input
@@ -285,7 +281,7 @@ export function SettingsWindow() {
             </div>
           </Section>
 
-          <div className="pb-2">
+          <div className="pb-1 pt-1">
             <Button
               variant="primary"
               className="w-full"

@@ -23,7 +23,7 @@ export function IconButton({
       title={label}
       aria-label={label}
       className={cx(
-        "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent transition-colors",
+        "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-40",
         tone === "danger"
           ? "text-[var(--color-text-secondary)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)]"

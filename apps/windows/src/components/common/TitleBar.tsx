@@ -87,9 +87,9 @@ export function TitleBar() {
   );
 
   return (
-    <div className="flex h-9 flex-shrink-0 select-none items-stretch border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div className="flex h-[34px] flex-shrink-0 select-none items-stretch border-b border-[var(--color-border)] bg-[var(--color-surface)]">
       <div
-        className="flex min-w-0 flex-1 cursor-default items-center gap-2 px-3"
+        className="flex min-w-0 flex-1 cursor-default items-center gap-1.5 px-3"
         onMouseDown={(event) => {
           if (event.button !== 0) return;
           startDragging();
@@ -99,17 +99,17 @@ export function TitleBar() {
         <img
           src="/favicon.png"
           alt=""
-          width={16}
-          height={16}
-          className="h-4 w-4 flex-shrink-0"
+          width={14}
+          height={14}
+          className="h-3.5 w-3.5 flex-shrink-0"
           draggable={false}
         />
-        <span className="truncate text-xs font-semibold tracking-wide text-[var(--color-text-secondary)]">
+        <span className="truncate text-[11px] font-medium tracking-[0.01em] text-[var(--color-text-muted)]">
           {t.app.title}
         </span>
         {!appWindow && (
           <span
-            className="flex-shrink-0 rounded-full bg-[var(--color-surface-hover)] px-1.5 py-0.5 text-[10px] text-[var(--color-text-muted)]"
+            className="flex-shrink-0 rounded-full bg-[var(--color-surface-hover)] px-1.5 text-[10px] text-[var(--color-text-muted)]"
             title="没有检测到 Tauri 运行时：当前是浏览器预览，消息与窗口操作不可用"
           >
             browser preview

@@ -23,7 +23,7 @@ export function MessageList() {
   if (isSearching && filteredMessages.length === 0) {
     return (
       <EmptyState
-        icon={<SearchIcon size={20} />}
+        icon={<SearchIcon size={22} />}
         title={`${t.search.noMatches} “${searchQuery.trim()}”`}
       />
     );
@@ -32,7 +32,7 @@ export function MessageList() {
   if (filteredMessages.length === 0) {
     return (
       <EmptyState
-        icon={<InboxIcon size={20} />}
+        icon={<InboxIcon size={22} />}
         title={t.message.empty}
         hint={t.message.emptyHint}
         action={
@@ -46,10 +46,12 @@ export function MessageList() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto w-full max-w-3xl space-y-2 px-4 pt-3 pb-4">
-        {filteredMessages.map((msg) => (
-          <MessageItem key={msg.id} message={msg} />
-        ))}
+      <div className="mx-auto w-full max-w-2xl px-3 py-1">
+        <div className="divide-y divide-[var(--color-border)]">
+          {filteredMessages.map((msg) => (
+            <MessageItem key={msg.id} message={msg} />
+          ))}
+        </div>
       </div>
     </div>
   );

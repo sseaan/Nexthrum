@@ -9,7 +9,10 @@ interface SectionProps {
   className?: string;
 }
 
-/** Grouped settings card: heading outside, fields on a raised surface. */
+/**
+ * Grouped settings block, macOS System Settings style: a small caption above a
+ * flat surface, rows separated by hairlines instead of boxes inside boxes.
+ */
 export function Section({
   title,
   description,
@@ -18,9 +21,11 @@ export function Section({
   className,
 }: SectionProps) {
   return (
-    <section className={cx("space-y-2", className)}>
+    <section className={cx("space-y-1.5", className)}>
       <div className="flex items-baseline justify-between gap-3 px-1">
-        <h2 className="text-sm font-semibold text-[var(--color-text)]">{title}</h2>
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-muted)]">
+          {title}
+        </h2>
         {actions}
       </div>
       {description && (
@@ -28,7 +33,12 @@ export function Section({
           {description}
         </p>
       )}
-      <div className="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+      <div
+        className={cx(
+          "divide-y divide-[var(--color-border)] overflow-hidden rounded-xl bg-[var(--color-surface)]",
+          "[&>*]:px-3.5 [&>*]:py-3",
+        )}
+      >
         {children}
       </div>
     </section>

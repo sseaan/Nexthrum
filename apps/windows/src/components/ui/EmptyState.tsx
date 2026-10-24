@@ -8,18 +8,15 @@ interface EmptyStateProps {
   action?: ReactNode;
 }
 
-/** Shared placeholder for "no messages" and "no search matches". */
+/** Quiet placeholder used by "no messages" and "no search matches". */
 export function EmptyState({ icon, title, hint, action }: EmptyStateProps) {
   return (
     <div className="flex h-full items-center justify-center px-6 py-10">
-      <div className="flex max-w-sm flex-col items-center text-center">
-        <div
-          className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)]"
-          aria-hidden="true"
-        >
+      <div className="flex max-w-[16rem] flex-col items-center text-center">
+        <span className="mb-3 text-[var(--color-text-muted)]/70" aria-hidden="true">
           {icon}
-        </div>
-        <p className="text-sm font-medium text-[var(--color-text)]">{title}</p>
+        </span>
+        <p className="text-[13px] font-medium text-[var(--color-text-secondary)]">{title}</p>
         {hint && (
           <p className="mt-1 text-xs leading-relaxed text-[var(--color-text-muted)]">
             {hint}

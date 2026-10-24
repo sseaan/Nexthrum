@@ -13,7 +13,7 @@ interface SegmentedControlProps<T extends string> {
   className?: string;
 }
 
-/** Inline radio group used for theme and language selection. */
+/** Inline radio group; macOS segmented control with a raised selected pill. */
 export function SegmentedControl<T extends string>({
   options,
   value,
@@ -26,7 +26,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       className={cx(
-        "inline-flex flex-wrap gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-1",
+        "inline-flex flex-wrap gap-0.5 rounded-lg bg-[var(--color-surface-hover)] p-0.5",
         className,
       )}
     >
@@ -40,9 +40,9 @@ export function SegmentedControl<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(option.value)}
             className={cx(
-              "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+              "rounded-[6px] px-2.5 py-1 text-xs font-medium transition-colors",
               selected
-                ? "bg-[var(--color-surface)] text-[var(--color-primary)] shadow-[var(--shadow-card)]"
+                ? "bg-[var(--color-surface)] text-[var(--color-text)] shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)]",
             )}
           >
