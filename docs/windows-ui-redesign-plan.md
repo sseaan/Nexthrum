@@ -1,6 +1,7 @@
 # Windows 端 UI 重构与视觉优化规划
 
-> 状态：阶段 1–4 代码与文档已实施，待 Windows 测试版验收（详见文末「实施进展」）  
+> 状态：阶段 1–5 已实施，待 Windows 测试版实机验收  
+> 实施记录：`devlog/2026-10-24.md`    
 > 适用范围：`apps/windows/src`、`apps/windows/src-tauri` 以及 Windows 端设计规范  
 > 目标：在不改动已验证的 Rust 业务内核、WebSocket 和系统通知链路的前提下，修复 Windows 前端的布局、窗口壳层、视觉质量和设置入口问题。
 
