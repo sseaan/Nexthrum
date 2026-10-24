@@ -15,7 +15,7 @@
 
 ## 2. 获取测试版
 
-不需要自己编译：`test/**` 分支的每次推送都会由 `.github/workflows/test-build.yml` 产出预发布。
+不需要自己编译：`.github/workflows/test-build.yml` 可手动触发（Actions → *Test build (Windows)* → Run workflow），推送 `test/**` 分支时也会自动构建并产出预发布。
 
 1. 打开仓库 **Actions → Test build (Windows)**，或直接看 **Releases → 带 `Pre-release` 标记的 `test-<sha7>`**
 2. 下载 `Nexthrum_<version>_x64-test.<sha7>-portable.zip`（**推荐**，解压双击 `Nexthrum.exe`，不覆盖已安装版本）
