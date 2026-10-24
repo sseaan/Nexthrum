@@ -197,7 +197,10 @@ jobs:
         run: |
           VERSION=$(node -p "require('./apps/windows/package.json').version")
           APP="target/xcode-derived/Build/Products/Debug/Nexthrum.app"
-          mkdir -p dist
+          # Sparkle only tolerates one archive per bundle version, so the zip
+          # (used by the updater) and the dmg (human download) live in separate
+          # directories: generate_appcast scans a whole directory.
+          mkdir -p dist out
           ditto -c -k --sequesterRsrc --keepParent "$APP" "dist/Nexthrum-${VERSION}.zip"
 
           # Human download: same archive layout as scripts/package-macos-dmg.sh.
@@ -206,7 +209,7 @@ jobs:
           cp -R "$APP" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
           hdiutil create -volname "Nexthrum" -srcfolder "$STAGE" \
-            -ov -format UDZO "dist/Nexthrum-${VERSION}-arm64.dmg" >/dev/null
+            -ov -format UDZO "out/Nexthrum-${VERSION}-arm64.dmg" >/dev/null
 
       - name: Sign appcast
         timeout-minutes: 10
@@ -241,4 +244,4 @@ jobs:
             if gh release view "$TAG" >/dev/null 2>&1; then break; fi
             sleep 5
           done
-          gh release upload "$TAG" dist/appcast.xml dist/*.zip dist/*.dmg --clobber
+          gh release upload "$TAG" dist/appcast.xml dist/*.zip out/*.dmg --clobber
