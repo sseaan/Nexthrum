@@ -126,7 +126,10 @@ jobs:
 
   macos:
     name: macOS arm64 release
-    runs-on: macos-14
+    # macos-14 images are deprecated (unsupported after 2026-11-02) and only
+    # ship the macOS 14 SDK, which makes the app fall back to the legacy design
+    # on macOS 26/27. Build against a current SDK so the UI matches the OS.
+    runs-on: macos-26
     # Wait for the Windows job, which creates the release through tauri-action.
     needs: build
     if: startsWith(github.ref, 'refs/tags/')

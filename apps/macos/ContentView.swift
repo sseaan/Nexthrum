@@ -101,10 +101,6 @@ struct ContentView: View {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("Messages")
                     .font(.title2.weight(.semibold))
-                    // The title font's glyphs start visually right of the frame
-                    // edge; shift them back so the heading, the search field and
-                    // the status row share one left guide.
-                    .offset(x: -2)
 
                 if model.unreadCount > 0 {
                     Text(L10n.t("unread_badge", model.unreadCount))
