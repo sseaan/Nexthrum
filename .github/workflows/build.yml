@@ -194,6 +194,10 @@ jobs:
 
       - name: Build signed app bundle
         run: |
+          # The Xcode script phase shells out to cargo; make sure the toolchain
+          # that dtolnay/rust-toolchain installed is on PATH for it.
+          export PATH="$HOME/.cargo/bin:/usr/local/cargo/bin:$PATH"
+          which cargo
           DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
           CODE_SIGN_IDENTITY="Nexthrum Local Signing" \
           CODE_SIGN_STYLE=Manual \
