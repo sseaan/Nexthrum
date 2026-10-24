@@ -179,9 +179,14 @@ jobs:
           # codesign only lists trusted identities. Trust must go to the admin
           # domain: the user domain triggers an Authorization Services prompt
           # that cannot be answered on a runner (the job hangs there).
-          # macOS ships LibreSSL, whose pkcs12 has no -legacy flag.
-          openssl pkcs12 -in "$P12" -nokeys \
-            -passin pass:"$MACOS_SIGNING_CERT_PASSWORD" -out "$RUNNER_TEMP/cert.pem"
+          #
+          # Read the certificate out of the keychain instead of running it
+          # through openssl: the p12 uses legacy RC2-40-CBC encryption and
+          # macOS 26's OpenSSL refuses it without the legacy provider
+          # ("digital envelope routines::unsupported").
+          security find-certificate -c "Nexthrum Local Signing" -p "$KEYCHAIN" \
+            > "$RUNNER_TEMP/cert.pem"
+          test -s "$RUNNER_TEMP/cert.pem"
           sudo security add-trusted-cert -d -r trustRoot -p codeSign \
             -k /Library/Keychains/System.keychain "$RUNNER_TEMP/cert.pem"
 
