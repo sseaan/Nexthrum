@@ -10,7 +10,7 @@
 - macOS：SwiftUI 经 UniFFI `BridgeService` 使用共享 Gotify client 与 SQLite repository，已具备设置、连接、消息管理、通知、菜单栏与启动项；凭据在 Keychain。
 - 共享：`nexthrum-core`（用例/策略）、`nexthrum-gotify`（HTTP/WebSocket）、`nexthrum-storage`（SQLite/migration）、`nexthrum-ffi`（bridge）。
 
-尚未完成的是发布工程，而非业务分层：两个平台都没有 Apple/Windows 付费证书（macOS 用稳定自签身份 + Sparkle，Windows 未做 Authenticode），以及 macOS 实机验收。详见 `docs/release.md`。
+发布工程已落地：Windows 走 `tauri-plugin-updater` + `latest.json`，macOS 走稳定自签身份 + Sparkle `appcast.xml`；仍缺 Apple 公证与 Windows Authenticode 证书（需要付费账号）。macOS 构建必须链接较新 SDK（当前 `macos-26` runner），否则新系统上会退回旧界面设计。详见 `docs/release.md`。
 
 ## 2. 目标架构图
 
@@ -116,13 +116,8 @@ SQLite 以 migration 管理 schema；repository 提供明确 CRUD 与事务边�
 - 数据库迁移和用户数据兼容可测试。
 - 统一行为契约、平台独立 UX；签名、公证与权限在各平台 CI/发布中单独验证。
 
-## 8. 迁移阶段
+## 8. 演进记录
 
-1. 风险收敛：凭据脱敏、连接状态、配置事务和错误反馈。
-2. 业务解耦：抽出 use cases、Gotify client、repository，保留现有 Tauri API。
-3. 数据治理：迁移框架、数据路径审计与兼容、测试基线。
-4. Swift bridge：验证 UniFFI DTO 与异步事件，再稳定接口。
-5. macOS vertical slice：SwiftUI 配置、连接、持久化、消息、通知、菜单栏。
-6. 完整平台行为、双平台 CI、签名发布与迁移验证。
+从「单平台 Windows」到「双平台共享内核」的六个阶段（风险收敛、业务解耦、数据治理、Swift bridge、macOS vertical slice、双平台发布）已全部完成，过程与决策归档在 `docs/history.md`。
 
-具体任务与验收见 `docs/refactor-plan.md`。
+现行分层约束见 `docs/tech-spec.md`，发布流程见 `docs/release.md`。

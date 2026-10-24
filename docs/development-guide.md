@@ -2,7 +2,7 @@
 
 ## 1. 项目现状
 
-两个原生前端已共用同一套 Rust Core：Windows 使用 React/TypeScript + Tauri 2，macOS 使用 SwiftUI + UniFFI。开始开发前查看 `devlog/` 最新记录及 `docs/requirements.md`、`docs/architecture.md`、`docs/tech-spec.md`、`docs/design-spec.md`；发布相关见 `docs/release.md`。
+两个原生前端已共用同一套 Rust Core：Windows 使用 React/TypeScript + Tauri 2（竖版窗口 + 类 macOS 扁平视觉），macOS 使用 SwiftUI + UniFFI。当前正式版本 2.0.1。开始开发前查看 `devlog/` 最新记录及 `docs/requirements.md`、`docs/architecture.md`、`docs/tech-spec.md`、`docs/design-spec.md`；发布相关见 `docs/release.md`。
 
 ## 2. 仓库导航
 
@@ -12,7 +12,7 @@ apps/macos/               SwiftUI 应用、Xcode 工程、XCTest、内嵌 Sparkl
 crates/                   nexthrum-core / gotify / storage / ffi
 scripts/                  bindings、图标、macOS 构建打包、签名身份
 tools/uniffi-bindgen/     本地 Swift bindings 生成器
-docs/                     需求、架构、技术、设计、发布手册
+docs/                     需求、架构、技术、设计、发布手册、更新历史、真机测试
 devlog/                   每日进展
 .github/workflows/        CI（双平台）与发布（tag 触发）
 ```
@@ -42,7 +42,7 @@ devlog/                   每日进展
 - Node.js 20 LTS、Rust stable、Visual Studio C++ Build Tools、WebView2。
 - 安装依赖：`npm --prefix apps/windows ci`。
 - 开发运行：`npm --prefix apps/windows run tauri dev`。
-- 真机测试清单（窗口按钮、DPI、主题、设置入口、安装包验收）：见 `docs/windows-testing.md`；UI 改造规划与进度见 `docs/windows-ui-redesign-plan.md`。
+- 真机测试清单（窗口按钮、DPI、主题、设置入口、安装包验收）：见 `docs/windows-testing.md`；UI 重做的背景与验收数据见 `docs/history.md`。
 - 前端检查：`npm --prefix apps/windows run typecheck`；前端构建：`npm --prefix apps/windows run build`。
 - 后端检查（从 workspace 根执行）：`cargo check --workspace`；完整门槛见第 5 节。
 
@@ -73,7 +73,7 @@ devlog/                   每日进展
 
 - Rust（workspace 根）：`cargo fmt --all --check`、`cargo test --workspace`、`cargo clippy --workspace --all-targets -- -D warnings`。
 - CI：`.github/workflows/ci.yml` 在 Windows 与 macOS arm64 上执行上述检查及 TypeScript、UniFFI 生成、Xcode build/XCTest；本地提交前应至少跑通 Rust 与 TypeScript 部分。
-- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest：store 派生、快照竞态、时间格式、更新状态机）、`npm --prefix apps/windows run build`。
+- Windows 前端：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest 4：store 派生、快照竞态、时间格式、更新状态机）、`npm --prefix apps/windows run build`。
 - SQLite：临时数据库测试、迁移升级/回滚及旧用户数据兼容测试。
 - Core：DND 跨午夜、重复消息、读状态、清理、连接状态和设置更新测试。
 - macOS：`scripts/build-macos-xcode.sh`、`xcodebuild ... test`（XCTest：设置策略、凭据事务、错误文案、本地化键一致性、时间格式、来源分组）；原生通知、菜单栏、启动项需在 macOS 环境集成验证。

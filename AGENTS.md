@@ -22,7 +22,7 @@ Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端
 | `tools/uniffi-bindgen/` | 本地 Swift bindings 生成器（CI 依赖，勿删） |
 | `scripts/` | bindings 生成、图标、macOS 构建/打包、签名身份 |
 | `docs/ devlog/` | 标准文档与每日开发日志 |
-| `.github/workflows/` | `ci.yml`（双平台检查）、`build.yml`（tag 触发的双平台发布） |
+| `.github/workflows/` | `ci.yml`（双平台检查）、`build.yml`（tag 触发的双平台发布）、`test-build.yml`（`test/**` 分支或手动触发的 Windows 预发布） |
 
 ## 3. 标准文档
 
@@ -32,7 +32,8 @@ Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端
 | 技术规范 | `docs/tech-spec.md` | 技术决策、目录、分层约束、测试门槛 |
 | 设计规范 | `docs/design-spec.md` | UI 布局、色彩、交互、平台差异 |
 | 架构设计 | `docs/architecture.md` | 架构图、模块职责、事件/Tauri 协议、持久化 |
-| 重构计划 | `docs/refactor-plan.md` | 迁移阶段与验收标准 |
+| 更新历史 | `docs/history.md` | 版本历史、已完成的重构与 UI 重做回顾、已归档文档去向 |
+| 真机测试 | `docs/windows-testing.md` | Windows 验收清单、端口/SDK/空白窗口排查、测试版获取 |
 | 发布手册 | `docs/release.md` | 版本同步、签名/公证、更新策略、发布检查清单 |
 | 项目说明 | `README.md` / `README.zh.md` | 英文主文档与简体中文版（安装、构建、架构、许可） |
 | 开发指南 | `docs/development-guide.md` | 环境搭建、开发流程、代码规范 |
@@ -48,8 +49,13 @@ Nexthrum 是连接 Gotify 服务器的桌面消息客户端，两个原生前端
 6. **设置与连接解耦**：设置持久化成功后即使重连失败也要保留新设置，并返回明确错误。
 7. **迁移要向后兼容**：新增列必须走 migration，并考虑早期 schema 缺列（参考 `ensure_local_columns`）。
 8. **macOS 签名与更新**：用 `scripts/create-local-signing-identity.sh` 建立稳定自签身份（不要退回 ad-hoc，否则钥匙串授权每次重建都重置）；macOS 自动更新走 Sparkle（`apps/macos/Vendor/Sparkle.framework`），`CFBundleVersion` 必须递增。
-9. **发布变更先读手册**：版本号需同时更新 `package.json`、`tauri.conf.json`、`Cargo.toml` 与 macOS `Info.plist`（CI 校验一致），macOS 还要递增 `CFBundleVersion`；签名/公证/更新与产物命名见 `docs/release.md`。
-10. **发布产物固定**：`Nexthrum_<v>_x64-setup.exe`、`Nexthrum_<v>_x64-portable.zip`、`Nexthrum-<v>-arm64.dmg`、`Nexthrum-<v>.zip`、`latest.json`、`appcast.xml`；不要上传独立 `*.sig`。
+9. **样式基类必须进层**：`apps/windows/src/styles/index.css` 里所有可能与 Tailwind 工具类冲突的规则必须写在 `@layer base` 内——未分层 CSS 会无视优先级压过 `@layer utilities`，曾导致全站间距/边框/字号失效。不要重复 preflight 的 `*` 与表单 reset。
+10. **不要用固定 offset 做视觉对齐**：字形留白随链接 SDK 变化，实测同一 `offset(x: -2)` 在 macOS 14.5 SDK 下对齐、在 macOS 26/27 SDK 下反向偏移。对齐问题要改布局结构，不补贴偏移量。
+11. **macOS 发布必须用当前 SDK**：发布 job 跑在 `macos-26` runner（`macos-14` 已于 2026-11-02 起停止支持，且只带 macOS 14 SDK，产物在新系统上会退回旧界面）。校验产物 `Info.plist` 的 `DTSDKName`。
+12. **Tauri 插件版本成对锁定**：`@tauri-apps/plugin-*` 写精确版本、对应 crate 用 `~` 锁同 minor，改动后跑 `npm --prefix apps/windows run check:tauri-versions`（CI 已接入）。
+13. **发布说明只写四段**：简介 / 下载文件用途 / 系统要求 / 本版亮点；未签名与未公证提示写在「下载文件」段。模板见 `.github/workflows/build.yml` 的 `releaseBody`，每次发版同步文件名版本号。
+14. **发布变更先读手册**：版本号需同时更新 `package.json`、`tauri.conf.json`、`Cargo.toml` 与 macOS `Info.plist`（CI 校验一致），macOS 还要递增 `CFBundleVersion`；签名/公证/更新与产物命名见 `docs/release.md`。
+15. **发布产物固定**：`Nexthrum_<v>_x64-setup.exe`、`Nexthrum_<v>_x64-portable.zip`、`Nexthrum-<v>-arm64.dmg`、`Nexthrum-<v>.zip`、`latest.json`、`appcast.xml`；不要上传独立 `*.sig`。
 
 ## 5. 开发流程
 

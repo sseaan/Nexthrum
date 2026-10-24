@@ -4,7 +4,7 @@
 
 - 消息优先、信息层级清楚、减少干扰；支持系统外观与可访问性。
 - 跨平台保持产品语义一致，但使用平台原生控件、导航、窗口与菜单行为，不逐像素复制。
-- 当前 Windows 界面以暗色和蓝色主色为基线，同时规划白天/浅色模式与跟随系统模式；macOS 首版遵循 SwiftUI/macOS 原生外观，支持系统浅色/深色外观。共享品牌色通过语义 token 映射，不强制相同控件样式。Windows 端详细重构计划见 `docs/windows-ui-redesign-plan.md`。
+- 当前 Windows 界面以暗色和蓝色主色为基线，同时规划白天/浅色模式与跟随系统模式；macOS 首版遵循 SwiftUI/macOS 原生外观，支持系统浅色/深色外观。共享品牌色通过语义 token 映射，不强制相同控件样式。Windows 端的重做背景与验收数据见 `docs/history.md`。
 
 ## 2. 信息架构
 
@@ -17,7 +17,7 @@
 
 - 按消息时间倒序；列表支持滚动和空状态。
 - 时间显示统一规则（两平台一致）：**当天**只显示 `HH:mm`；**同年**显示 `MM-DD HH:mm`；**跨年**显示 `YYYY-MM-DD`。完整时间仅用于 tooltip / 辅助技术文本。
-- Windows 与 macOS 均采用同一卡片式规格：`apps/windows` 的 `MessageHeader` + `MessageItem`，macOS 的 `MessageRow`/`MessageCard` + `headerBar`；两侧都提供顶部来源筛选、连接状态与重连入口。
+- 两端的列表呈现方式不同但语义一致：Windows 为扁平行（`MessageHeader` + `MessageItem`，细分割线、无卡片边框），macOS 为卡片（`MessageRow`/`MessageCard` + `headerBar`）；两侧都提供顶部来源筛选、连接状态与重连入口。
 - 消息列表采用**扁平行**而非卡片：行间用 1px 分割线，悬停仅轻微填充，不使用独立卡片边框与阴影。
 - 行内层级（必须清楚区分标题、正文与渠道）：标题 13px / 字重 600（已读 500 + 次要色）；正文 12px / 弱化色 `--color-text-muted`，最多两行；渠道与优先级均为 10px 圆角小徽标，渠道用 `--color-surface-hover` 底 + 次要色字，优先级 ≥7 时用危险色淡底强调。
 - 未读不能只靠颜色：蓝点 + 标题字重 + 强调色时间三重提示，正文颜色在已读/未读之间保持一致，避免用正文颜色表达未读。

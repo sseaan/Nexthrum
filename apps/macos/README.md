@@ -1,6 +1,6 @@
 # Nexthrum macOS app
 
-The macOS app uses SwiftUI with a shared Rust bridge. Settings exposes Server URL, Client Token, retention days (1–365), DND start/end, notification permission, connection status, Dock visibility and UI language. If the Keychain token is absent, locally stored messages still load and remain available, while the Gotify connection stays stopped.
+The macOS app uses SwiftUI with a shared Rust bridge. Settings exposes Server URL, Client Token, retention days (1–365), DND start/end, notification permission, connection status, Dock visibility, UI language, and an Updates group (automatic checks toggle, Check for Updates button, last check time) backed by Sparkle. If the Keychain token is absent, locally stored messages still load and remain available, while the Gotify connection stays stopped.
 
 `CredentialSettingsTransaction` does not treat a successful settings commit followed by a connection-start failure as a rollback: it keeps the persisted settings/token and reports the connection error separately. XCTest covers settings-save rollback, rollback failure reporting, credential-write failure (settings are not attempted), and successful commit.
 
@@ -31,6 +31,8 @@ The shared `Nexthrum.xcconfig` is the single source for target architecture and 
 The Xcode project intentionally targets Apple Silicon arm64 only; Intel/x86_64 and universal binaries are out of scope. The current deployment target is macOS 14.0. `Sparkle.framework` (2.10.0) is vendored under `Vendor/` and drives automatic updates from the release `appcast.xml`.
 
 Builds are signed with the stable self-signed identity (`scripts/create-local-signing-identity.sh`); Gatekeeper still warns on first install because the app is not notarized.
+
+Build with a current Xcode/SDK (the release job runs on a `macos-26` runner). macOS keys the interface design to the linked SDK, so an app built against an old SDK falls back to the legacy appearance on macOS 26/27 — check `DTSDKName` in the built app's `Info.plist`.
 
 The app validates settings through `BridgeService`, tests the Gotify `/version` endpoint through `nexthrum-gotify`, and exposes a cancellable WebSocket lifecycle. UniFFI exposes `startConnection`, non-blocking `pollEvent`, and `stopConnection`; Swift polls on the main run loop and updates connection state and the in-memory message list. Tokio runtime/channels remain inside Rust and are not passed across FFI.
 

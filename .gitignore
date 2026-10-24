@@ -33,3 +33,6 @@ Thumbs.db
 
 # SQLite databases
 *.db
+
+# Local test screenshots (not part of the repo)
+screenshot/

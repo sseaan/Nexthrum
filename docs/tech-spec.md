@@ -5,10 +5,13 @@
 ### Windows
 - Tauri 2、React 18、TypeScript、Zustand、Tailwind CSS v4、Rust。
 - Tauri 命令层已是薄适配器：参数校验 + 调用 Rust Core 用例 + 事件/错误呈现。
+- 主题与视觉完全由语义色 Token 驱动（`apps/windows/src/styles/index.css`）；自定义基样式必须写在 `@layer base` 内，否则会压过 Tailwind 工具类。
+- 开发端口与 `build.devUrl` 必须一致；Windows 上用 `scripts/dev-port.ps1` 规避 Hyper-V 保留端口段。
 
 ### macOS
 - 原生 UI：SwiftUI；自动更新使用内嵌的 Sparkle 2（EdDSA 签名 appcast）。
 - 最低 macOS 14.0，仅 Apple Silicon（arm64）；`<key>CFBundleVersion</key>` 使用单调递增构建号。
+- 必须用较新的链接 SDK 构建（发布 job 用 `macos-26` runner）：macOS 按链接 SDK 决定界面设计，旧 SDK 产物在新系统上会退回旧外观。
 - 共享业务：Rust Core；Swift 通过生成的 UniFFI bindings 调用（已验证 DTO、错误映射、异步事件轮询与取消）。
 - 平台能力：Swift/Apple 框架实现菜单栏、窗口、UserNotifications、开机启动、Keychain 等。
 
@@ -73,7 +76,7 @@ Core 负责“发生什么”，平台层负责“如何展示通知/事件”�
 - Rust：fmt、clippy、单元测试、临时 SQLite repository/migration 测试。
 - 领域测试：消息去重、已读/未读、DND（含跨午夜）、保留清理、设置兼容、重连状态与配置更新。
 - Bridge：Rust 与 Swift DTO/事件映射测试；避免手工复制模型造成漂移。
-- Windows：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest：store 派生、快照竞态、时间格式）、前端构建、Windows target `cargo check`。
+- Windows：`npm --prefix apps/windows run typecheck`、`npm --prefix apps/windows test`（vitest 4：store 派生、快照竞态、时间格式、更新状态机）、`npm --prefix apps/windows run build`、`npm --prefix apps/windows run check:tauri-versions`（npm 插件与 Rust crate 的 major.minor 必须一致）、Windows target `cargo check`。
 - macOS：Rust macOS target 构建、Swift 编译及原生集成测试。
 - 发布：Windows 安装包/便携包；macOS arm64、最低 macOS 14.0，签名、公证、DMG/ZIP 策略待发布配置确定。
 

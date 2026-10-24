@@ -2,7 +2,7 @@
 
 > 适用：Windows 10 21H2+ / Windows 11，x64
 > 目的：在真实 Windows 环境验证 UI 重构（窗口壳层、主题、布局、设置入口）与宿主能力（托盘、通知、凭据、自启动）
-> 相关文档：`docs/windows-ui-redesign-plan.md`（改造规划与验收矩阵）、`docs/design-spec.md`（视觉规范）
+> 相关文档：`docs/design-spec.md`（视觉规范）、`docs/history.md`（UI 重做背景与验收数据）
 
 ## 1. 测试分层
 
@@ -56,7 +56,7 @@ WebView2 在 Win11 与 Win10 21H2+ 已内置；未装则 `winget install Microso
 ```powershell
 git clone <repo-url> Nexthrum
 cd Nexthrum
-git checkout test/windows-ui
+git checkout main          # 或任意 PR 分支
 npm --prefix apps/windows ci
 ```
 
@@ -77,7 +77,7 @@ npm --prefix apps/windows run tauri dev
 
 - `document.documentElement.dataset.theme` 是否为 `dark` / `light`
 - 是否出现 `scrollWidth > clientWidth`（横向溢出）
-- 标题栏元素宽高、消息卡片内边距是否符合预期
+- 标题栏元素宽高、消息行内边距是否符合预期
 
 ### 4.2 安装包
 
@@ -121,7 +121,7 @@ npm --prefix apps/windows run tauri build
 | 标题栏 | 视觉高度稳定，按钮点击区域不变形 |
 | 中文文案 | 清晰不发虚，字体回退到 `Microsoft YaHei UI` |
 | 1px 边框 | 视觉上仍为细线，不出现双线或消失 |
-| 消息卡片 | 标题/正文/时间不错位，无半行裁切 |
+| 消息行 | 标题/正文/时间不错位，无半行裁切 |
 | 设置页开关 | 拇指与轨道对齐，点击命中区域正常 |
 
 切换缩放后建议关闭窗口再从托盘打开一次，排除 WebView2 缩放缓存。
