@@ -76,6 +76,15 @@ final class AppModel: ObservableObject {
 
     @Published var notificationPermissionStatus = "Checking…"
 
+    /// Sparkle preferences mirrored into observable state so Settings can show
+    /// them: automatic checks, whether a check may start right now, and the last
+    /// check timestamp. Sparkle owns the persisted truth in UserDefaults.
+    @Published var automaticallyChecksForUpdates = true
+
+    @Published var canCheckForUpdates = true
+
+    @Published var lastUpdateCheckDate: Date?
+
     @Published var notificationPermissionDenied = false
 
     /// Sparkle drives macOS updates: it checks the appcast, verifies the EdDSA
@@ -117,6 +126,7 @@ final class AppModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] error in self?.launchAtLoginMessage = error }
             .store(in: &subscriptions)
+        observeUpdater()
         notificationStatusObservation = notificationService.$authorizationStatus
             .combineLatest(notificationService.$authorizationDenied)
             .sink { [weak self] status, denied in

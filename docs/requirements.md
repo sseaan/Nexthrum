@@ -62,6 +62,7 @@ Nexthrum 是 Gotify 桌面消息客户端，连接用户配置的 Gotify 服务�
 - Server URL、Client Token；macOS 设置页同时支持消息保留天数和 DND 开始/结束时间。
 - macOS 设置增加 Launch at login 开关和系统授权/注册状态；服务使用 `SMAppService.mainApp`，注册失败不回滚已保存的连接设置。
 - macOS 设置增加外观分组：程序坞图标显示开关（`UserDefaults` 持久化，不进 `BridgeSettings`）与界面语言（跟随系统 / English / 简体中文，切换后需重启生效）。
+- macOS 设置增加「更新」分组：自动检查更新开关（写回 Sparkle 的 `automaticallyChecksForUpdates`）、「检查更新…」按钮（检查中禁用并显示进行态）与上次检查时间。
 - 窗口/常驻行为（平台适配，不强求选项名称完全相同）。
 - 消息保留天数，默认 7 天，定期清理过期消息。
 - DND 开始/结束时间，默认 22:00–08:00。

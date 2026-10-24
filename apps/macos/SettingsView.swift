@@ -93,6 +93,32 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Updates") {
+                Toggle("Automatically check for updates", isOn: Binding(
+                    get: { model.automaticallyChecksForUpdates },
+                    set: { model.setAutomaticallyChecksForUpdates($0) }
+                ))
+
+                HStack {
+                    Button(model.canCheckForUpdates ? "Check for Updates…" : "Checking…") {
+                        model.checkForUpdates()
+                    }
+                    .disabled(!model.canCheckForUpdates)
+
+                    Spacer()
+
+                    if let lastCheck = model.lastUpdateCheckDate {
+                        Text(lastCheck, format: .dateTime.year().month().day().hour().minute())
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text("Updates are delivered through GitHub Releases and verified with Sparkle's EdDSA signature.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Status") {
                 Button("Save Settings") { model.validateAndSave() }
                     .disabled(!model.isConfigured)
