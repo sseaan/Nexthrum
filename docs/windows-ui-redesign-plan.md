@@ -375,6 +375,14 @@ npm --prefix apps/windows run build
 - [x] `docs/release.md`：新增「测试版构建（不进入更新通道）」，说明触发方式、产物命名、清理命令
 - [x] 开发者模式下的浏览器预览不再报错：`isTauriRuntime()` 守卫 + `browser preview` 标记与提示条
 
+**阶段 5：层叠根因修复（测试版反馈）**
+
+- [x] 定位「样式错位」根因：`styles/index.css` 里未分层（unlayered）的 `* { margin:0; padding:0; box-sizing:border-box }`、`button {...}`、`input,select,textarea {...}` 压过了 Tailwind v4 `@layer utilities` 里的所有间距/边框/字号工具类，导致全站 `px-*`/`py-*`/`space-y-*`/按钮内边距失效
+- [x] 修复：所有可能与工具类冲突的规则移入 `@layer base`，删除与 preflight 重复的 reset，只保留 `cursor: pointer`、焦点环、选区与滚动条
+- [x] 本地量化验证（headless Chrome + 像素测量 + OCR）：800×600@125% 下引导页图标由 `x=0` 变为 `x=165`（`max-w-xl` 居中 + `px-5` 生效），设置页分区标题 `x=103`、字段 `x=119`，400×300 下内容左右各约 16px 且不裁切
+- [x] 新增 `?view=settings` 查询参数，便于在浏览器预览中直接核对设置页布局
+- [x] `docs/development-guide.md` 增补「前端样式约定」：基样式必须进 `@layer base`，不得重复 preflight 的 reset
+
 ### 待完成
 
 - [ ] Windows 测试版实机验收：标题栏三按钮/双击/拖动、125%/150% DPI、400×300 与最大化布局

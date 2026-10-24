@@ -5,144 +5,134 @@
 @source "../../index.html";
 
 /*
- * Semantic colour tokens.
- *
- * Dark is the default palette; the light palette overrides the same names so
- * components never branch on the theme. `data-theme` is set on <html> by
- * src/theme/useTheme.ts (system / light / dark).
+ * Everything that can collide with a utility class MUST live in @layer base.
+ * Tailwind v4 emits its utilities inside @layer utilities, and *unlayered* CSS
+ * beats every layer regardless of specificity — an unlayered `* { margin: 0 }`
+ * silently disables px-*, py-*, m-*, space-y-* and friends across the app.
  */
-:root {
-  color-scheme: dark;
+@layer base {
+  /*
+   * Semantic colour tokens.
+   *
+   * Dark is the default palette; the light palette overrides the same names so
+   * components never branch on the theme. `data-theme` is set on <html> by
+   * src/theme/useTheme.ts (system / light / dark).
+   */
+  :root {
+    color-scheme: dark;
 
-  --color-bg: #0f1724;
-  --color-surface: #16202f;
-  --color-surface-raised: #1c2839;
-  --color-surface-hover: #24334a;
+    --color-bg: #0f1724;
+    --color-surface: #16202f;
+    --color-surface-raised: #1c2839;
+    --color-surface-hover: #24334a;
 
-  --color-border: #2b3b52;
-  --color-border-strong: #3d5170;
+    --color-border: #2b3b52;
+    --color-border-strong: #3d5170;
 
-  --color-primary: #4f8df7;
-  --color-primary-hover: #6ba1ff;
-  --color-primary-soft: rgba(79, 141, 247, 0.12);
+    --color-primary: #4f8df7;
+    --color-primary-hover: #6ba1ff;
+    --color-primary-soft: rgba(79, 141, 247, 0.12);
 
-  --color-text: #e8f0fb;
-  --color-text-secondary: #a4b3c8;
-  --color-text-muted: #74849b;
+    --color-text: #e8f0fb;
+    --color-text-secondary: #a4b3c8;
+    --color-text-muted: #74849b;
 
-  --color-danger: #f87171;
-  --color-danger-soft: rgba(248, 113, 113, 0.12);
-  --color-success: #34d399;
-  --color-success-soft: rgba(52, 211, 153, 0.12);
-  --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --color-danger-soft: rgba(248, 113, 113, 0.12);
+    --color-success: #34d399;
+    --color-success-soft: rgba(52, 211, 153, 0.12);
+    --color-warning: #fbbf24;
 
-  --color-overlay: rgba(8, 13, 21, 0.62);
+    --color-overlay: rgba(8, 13, 21, 0.62);
 
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.45);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
 
-  --radius-card: 12px;
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --color-bg: #f3f6fb;
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-surface-hover: #eaf0f8;
+
+    --color-border: #d7e0ec;
+    --color-border-strong: #b7c6da;
+
+    --color-primary: #2563c7;
+    --color-primary-hover: #1d4fa3;
+    --color-primary-soft: rgba(37, 99, 199, 0.1);
+
+    --color-text: #172033;
+    --color-text-secondary: #53627a;
+    --color-text-muted: #7b879a;
+
+    --color-danger: #c93636;
+    --color-danger-soft: rgba(201, 54, 54, 0.1);
+    --color-success: #16804d;
+    --color-success-soft: rgba(22, 128, 77, 0.1);
+    --color-warning: #a86400;
+
+    --color-overlay: rgba(23, 32, 51, 0.38);
+
+    --shadow-card: 0 1px 2px rgba(23, 32, 51, 0.07);
+    --shadow-popover: 0 12px 32px rgba(23, 32, 51, 0.16);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family:
+      system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI",
+      "Microsoft YaHei UI", "Microsoft YaHei", Roboto, Ubuntu, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tailwind v4 leaves buttons with the default cursor; desktop apps expect a
+     pointer. `cursor-*` utilities still win because utilities is a later layer. */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-soft);
+    color: var(--color-text);
+  }
+
+  /* WebKit adds its own clear affordance to search inputs; the header renders one. */
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-
-  --color-bg: #f3f6fb;
-  --color-surface: #ffffff;
-  --color-surface-raised: #ffffff;
-  --color-surface-hover: #eaf0f8;
-
-  --color-border: #d7e0ec;
-  --color-border-strong: #b7c6da;
-
-  --color-primary: #2563c7;
-  --color-primary-hover: #1d4fa3;
-  --color-primary-soft: rgba(37, 99, 199, 0.1);
-
-  --color-text: #172033;
-  --color-text-secondary: #53627a;
-  --color-text-muted: #7b879a;
-
-  --color-danger: #c93636;
-  --color-danger-soft: rgba(201, 54, 54, 0.1);
-  --color-success: #16804d;
-  --color-success-soft: rgba(22, 128, 77, 0.1);
-  --color-warning: #a86400;
-
-  --color-overlay: rgba(23, 32, 51, 0.38);
-
-  --shadow-card: 0 1px 2px rgba(23, 32, 51, 0.07);
-  --shadow-popover: 0 12px 32px rgba(23, 32, 51, 0.16);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
-body {
-  font-family:
-    system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI",
-    "Microsoft YaHei UI", "Microsoft YaHei", Roboto, Ubuntu, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Windows raises a native context menu on the webview; keep text selectable in
-   content areas but not in chrome. */
-button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-/* WebKit adds its own clear affordance to search inputs; the header renders one. */
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-results-button,
-input[type="search"]::-webkit-search-results-decoration {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-input[type="search"] {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-::selection {
-  background-color: var(--color-primary-soft);
-  color: var(--color-text);
-}
-
-/* Scrollbar styling */
+/* Scrollbars are decorative and never compete with utilities, so they stay
+   unlayered. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

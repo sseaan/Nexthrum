@@ -18,6 +18,13 @@ function App() {
 
   const listenersReady = useTauriEvents();
 
+  // `?view=settings` opens the settings page directly. Layout work needs to be
+  // checkable in a browser preview where there is no tray menu to click.
+  useEffect(() => {
+    const view = new URLSearchParams(window.location.search).get("view");
+    if (view === "settings") useAppStore.getState().setCurrentView("settings");
+  }, []);
+
   const loadApplicationNames = async () => {
     try {
       const applications = await invoke<{ id: number; name: string }[]>(

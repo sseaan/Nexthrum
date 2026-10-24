@@ -86,6 +86,14 @@ devlog/                   每日进展
 - 更改数据目录、数据库文件名或设置格式前，审计既有安装实际路径，编写幂等迁移和备份/恢复策略。
 - 新增设置要定义默认值、兼容缺省配置、平台映射和 UI 文案；凭据优先使用系统凭据存储。
 
+## 7. 前端样式约定（Windows）
+
+- **自定义基样式必须写在 `@layer base` 内**。Tailwind v4 把工具类放在 `@layer utilities`，而未分层的 CSS 无视优先级直接压过所有 layer：一条裸 `* { margin: 0; padding: 0 }` 会让全站的 `px-*`、`py-*`、`m-*`、`space-y-*` 全部失效，表现为「内容贴边、组件挤在一起」。
+- Tailwind preflight 已包含 `*` 的 margin/padding/box-sizing 归零与表单控件的 `font: inherit`，不要在 `apps/windows/src/styles/index.css` 里重复声明。
+- 主题只通过 `--color-*` 语义 Token 取色；深色在 `:root`，白天在 `:root[data-theme="light"]`。
+- 组件复用 `apps/windows/src/components/ui/` 下的基础控件，不要逐页复制按钮/输入框样式。
+- 本地快速核验：`cd apps/windows && npm run dev`，浏览器打开 `http://localhost:1520`（`?view=settings` 可直接看设置页）。浏览器只有渲染预览，`window.__TAURI_INTERNALS__` 不存在，因此必须用 `isTauriRuntime()` 守卫所有 Tauri API 调用。
+
 ## 7. 文档与开发日志
 
 涉及需求、API、数据结构、平台行为或安装要求时，先更新对应标准文档，再实现。新增/修改 Tauri command 或 Core bridge 时更新 `docs/architecture.md` 的接口协议。完成后在当日 `devlog/YYYY-MM-DD.md` 记录完成事项、验证结果和遗留问题。
