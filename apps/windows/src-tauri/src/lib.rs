@@ -59,8 +59,8 @@ pub fn run() {
             .title("Nexthrum")
             // A message feed reads better as a tall column, matching the
             // macOS menu-bar panel rather than a wide desktop window.
-            .inner_size(460.0, 760.0)
-            .min_inner_size(380.0, 420.0)
+            .inner_size(400.0, 680.0)
+            .min_inner_size(340.0, 420.0)
             .decorations(false)
             .shadow(true)
             .visible(!settings.start_hidden)

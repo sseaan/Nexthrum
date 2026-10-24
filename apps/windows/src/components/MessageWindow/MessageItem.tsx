@@ -123,10 +123,10 @@ export function MessageItem({ message }: MessageItemProps) {
             <div className="flex items-baseline gap-2">
               <h3
                 className={cx(
-                  "min-w-0 flex-1 truncate text-[13px]",
+                  "min-w-0 flex-1 truncate text-[13px] tracking-[-0.01em]",
                   isUnread
                     ? "font-semibold text-[var(--color-text)]"
-                    : "font-normal text-[var(--color-text-secondary)]",
+                    : "font-medium text-[var(--color-text-secondary)]",
                 )}
               >
                 {message.title || t.message.noTitle}
@@ -135,7 +135,7 @@ export function MessageItem({ message }: MessageItemProps) {
                 className={cx(
                   "flex-shrink-0 whitespace-nowrap text-[11px] tabular-nums",
                   isUnread
-                    ? "text-[var(--color-primary)]"
+                    ? "font-medium text-[var(--color-primary)]"
                     : "text-[var(--color-text-muted)]",
                 )}
                 dateTime={message.date}
@@ -145,26 +145,30 @@ export function MessageItem({ message }: MessageItemProps) {
               </time>
             </div>
 
-            <p
-              className={cx(
-                "mt-0.5 line-clamp-2 text-xs leading-relaxed",
-                isUnread
-                  ? "text-[var(--color-text-secondary)]"
-                  : "text-[var(--color-text-muted)]",
-              )}
-            >
+            {/* Body is deliberately one step quieter than the title in both
+                states; unread emphasis lives in the dot, weight and time. */}
+            <p className="mt-1 line-clamp-2 text-xs leading-[1.55] text-[var(--color-text-muted)]">
               {truncate(message.message, 300)}
             </p>
 
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)]">
-              <span className="max-w-[11rem] truncate" title={appLabel(message.appid)}>
+            <div className="mt-1.5 flex items-center gap-1">
+              <span
+                className="max-w-[11rem] truncate rounded-md bg-[var(--color-surface-hover)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-text-secondary)]"
+                title={appLabel(message.appid)}
+              >
                 {appLabel(message.appid)}
               </span>
               {message.priority > 0 && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="tabular-nums">P{message.priority}</span>
-                </>
+                <span
+                  className={cx(
+                    "rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
+                    message.priority >= 7
+                      ? "bg-[var(--color-danger-soft)] text-[var(--color-danger)]"
+                      : "bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]",
+                  )}
+                >
+                  P{message.priority}
+                </span>
               )}
             </div>
           </div>
