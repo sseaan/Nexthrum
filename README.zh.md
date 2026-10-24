@@ -35,8 +35,8 @@
 
 | 文件 | 说明 |
 |---|---|
-| `Nexthrum_2.0.0_x64-setup.exe` | NSIS 安装包（当前用户安装，无需管理员） |
-| `Nexthrum_2.0.0_x64-portable.zip` | 便携版，解压即用 |
+| `Nexthrum_2.0.1_x64-setup.exe` | NSIS 安装包（当前用户安装，无需管理员） |
+| `Nexthrum_2.0.1_x64-portable.zip` | 便携版，解压即用 |
 
 安装包**尚未做 Authenticode 签名**，首次运行会出现「Windows 已保护你的电脑」：选择 **更多信息 → 仍要运行**。
 
@@ -44,8 +44,8 @@
 
 | 文件 | 说明 |
 |---|---|
-| `Nexthrum-2.0.0-arm64.dmg` | 拖拽安装包（Apple Silicon，macOS 14+） |
-| `Nexthrum-2.0.0.zip` | 供 Sparkle 更新使用的应用包 |
+| `Nexthrum-2.0.1-arm64.dmg` | 拖拽安装包（Apple Silicon，macOS 14+） |
+| `Nexthrum-2.0.1.zip` | 供 Sparkle 更新使用的应用包 |
 
 应用**未做公证**（没有付费 Apple 开发者账号），首次打开需要**右键 → 打开**，或者执行：
 

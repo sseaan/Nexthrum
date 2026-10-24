@@ -35,8 +35,8 @@ Download from [GitHub Releases](https://github.com/sseaan/Nexthrum/releases).
 
 | File | Description |
 |---|---|
-| `Nexthrum_2.0.0_x64-setup.exe` | NSIS installer (per-user, no admin prompt) |
-| `Nexthrum_2.0.0_x64-portable.zip` | Portable build — extract and run |
+| `Nexthrum_2.0.1_x64-setup.exe` | NSIS installer (per-user, no admin prompt) |
+| `Nexthrum_2.0.1_x64-portable.zip` | Portable build — extract and run |
 
 The installer is **not** Authenticode-signed yet, so SmartScreen shows "Windows protected your PC" on first run: choose **More info → Run anyway**.
 
@@ -44,8 +44,8 @@ The installer is **not** Authenticode-signed yet, so SmartScreen shows "Windows 
 
 | File | Description |
 |---|---|
-| `Nexthrum-2.0.0-arm64.dmg` | Drag-and-drop installer (Apple Silicon, macOS 14+) |
-| `Nexthrum-2.0.0.zip` | App archive used by Sparkle for updates |
+| `Nexthrum-2.0.1-arm64.dmg` | Drag-and-drop installer (Apple Silicon, macOS 14+) |
+| `Nexthrum-2.0.1.zip` | App archive used by Sparkle for updates |
 
 The app is **not notarized** (no paid Apple Developer account), so the first launch needs **right-click → Open**, or:
 

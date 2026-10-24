@@ -1,7 +1,7 @@
 {
   "name": "nexthrum",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Cross-platform Gotify desktop client — Windows (Tauri + React) and macOS (SwiftUI) on a shared Rust core",
   "license": "AGPL-3.0-only",
   "type": "module",
