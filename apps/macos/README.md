@@ -1,6 +1,6 @@
 # Nexthrum macOS app
 
-The macOS app uses SwiftUI with a shared Rust bridge. Settings exposes Server URL, Client Token, retention days (1–365), DND start/end, notification permission, and connection status. If the Keychain token is absent, locally stored messages still load and remain available, while the Gotify connection stays stopped.
+The macOS app uses SwiftUI with a shared Rust bridge. Settings exposes Server URL, Client Token, retention days (1–365), DND start/end, notification permission, connection status, Dock visibility and UI language. If the Keychain token is absent, locally stored messages still load and remain available, while the Gotify connection stays stopped.
 
 `CredentialSettingsTransaction` does not treat a successful settings commit followed by a connection-start failure as a rollback: it keeps the persisted settings/token and reports the connection error separately. XCTest covers settings-save rollback, rollback failure reporting, credential-write failure (settings are not attempted), and successful commit.
 
@@ -54,6 +54,22 @@ release. `scripts/generate-swift-bindings.sh` and the Xcode build read the same
 UI strings live in `Resources/Localizable.xcstrings` (en + zh-Hans). Static SwiftUI
 literals are used as keys; dynamic strings go through `L10n.t(key)`. `LocalizationTests`
 fails if the two languages drift apart.
+
+Settings → Appearance lets the user pick **System Default / English / 简体中文**. The
+choice is stored in `UserDefaults` (`preferences.language`) and written to the app
+domain's `AppleLanguages`, so bundle lookups, the app menu, the menu bar label and
+notifications all switch together on the next launch; the pane offers a
+“Restart Now” button while a relaunch is pending.
+
+## Dock visibility
+
+Settings → Appearance can hide the Dock icon. This switches the activation policy
+to `.accessory`, which removes both the Dock tile and the ⌘-Tab entry while the
+`MenuBarExtra` panel keeps the app reachable. The preference is persisted in
+`UserDefaults` (`preferences.hideDockIcon`) and is macOS-only, so it never enters
+`BridgeSettings`/`AppSettings`. When it is on, `AppLifecycleDelegate` sets the
+policy before the first window appears and dismisses the `WindowGroup` launch
+window, so the app starts menu-bar-only.
 
 The macOS app uses a native SwiftUI `MenuBarExtra` window panel: unread count, the three most recent messages (open / mark read / delete), Open Messages, Settings, and Quit. Closing the last main window keeps the app and Gotify connection running; quitting is explicit from the menu. Clicking a notification reopens the main window and navigates to its message.
 

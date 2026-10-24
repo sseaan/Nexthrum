@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
+    @EnvironmentObject private var preferences: AppPreferences
 
     var body: some View {
         Form {
@@ -52,6 +53,33 @@ struct SettingsView: View {
                 Text("Only messages allowed by your Do Not Disturb settings generate notifications.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+            }
+
+            Section("Appearance") {
+                Toggle("Show icon in Dock", isOn: Binding(
+                    get: { !preferences.hideDockIcon },
+                    set: { preferences.setHideDockIcon(!$0) }
+                ))
+                Text("When the Dock icon is hidden, Nexthrum keeps running in the menu bar.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
+                Picker("Language", selection: Binding(
+                    get: { preferences.language },
+                    set: { preferences.select(language: $0) }
+                )) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                if preferences.needsRelaunch {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Language changes take effect after Nexthrum restarts.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Button("Restart Now") { AppPreferences.relaunch() }
+                    }
+                }
             }
 
             Section("Startup") {

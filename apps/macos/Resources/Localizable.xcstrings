@@ -81,6 +81,22 @@
         }
       }
     },
+    "Appearance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "en": {
@@ -705,6 +721,38 @@
         }
       }
     },
+    "Language": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "Language changes take effect after Nexthrum restarts.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language changes take effect after Nexthrum restarts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言更改将在重新启动 Nexthrum 后生效。"
+          }
+        }
+      }
+    },
     "Launch Nexthrum at login": {
       "localizations": {
         "en": {
@@ -1201,6 +1249,22 @@
         }
       }
     },
+    "Restart Now": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即重新启动"
+          }
+        }
+      }
+    },
     "Retention must be 1–365 days and DND times must use HH:MM format.": {
       "localizations": {
         "en": {
@@ -1377,6 +1441,22 @@
         }
       }
     },
+    "Show icon in Dock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show icon in Dock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在程序坞中显示图标"
+          }
+        }
+      }
+    },
     "Since last event": {
       "localizations": {
         "en": {
@@ -1469,6 +1549,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已停止"
+          }
+        }
+      }
+    },
+    "System Default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跟随系统"
           }
         }
       }
@@ -1773,6 +1869,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "欢迎使用 Nexthrum"
+          }
+        }
+      }
+    },
+    "When the Dock icon is hidden, Nexthrum keeps running in the menu bar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the Dock icon is hidden, Nexthrum keeps running in the menu bar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏程序坞图标后，Nexthrum 会继续在菜单栏运行。"
           }
         }
       }

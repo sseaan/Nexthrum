@@ -55,6 +55,7 @@ Tauri platform adapter                      macOS platform adapter
 - SwiftUI 消息列表已接入共享 storage bridge：显示未读数，支持标记已读、单条本地删除及带二次确认的本地清空；清空提示明确说明不删除服务器消息。
 - `apps/macos/Nexthrum.xcodeproj` 已建立共享 scheme；build phase 生成 Swift bindings 并构建 Rust dylib，Xcode target 编译 SwiftUI、嵌入 dylib，`scripts/build-macos-xcode.sh` 的 `xcodebuild build` 已通过并运行验证。目前仅 arm64，正式签名、公证、Universal binary 尚待完成。
 - macOS `MacNotificationService` 使用 `UNUserNotificationCenter` 管理授权状态和发送通知。`MacNotificationPolicy` 独立于系统 API，强制检查 Core `should_notify` 和授权状态，并解析点击通知中的 message ID；点击后激活应用、定位消息并标记已读。Xcode unit tests 覆盖策略门控、授权分类与 ID 解析。
+- macOS 宿主偏好（`AppPreferences`）：程序坞图标显示与界面语言属于宿主 UX，不进入 `BridgeSettings`，只存 `UserDefaults`。隐藏程序坞图标走 `NSApplication.setActivationPolicy(.accessory)`（同时移除 ⌘-Tab 条目），`AppLifecycleDelegate` 在 `applicationWillFinishLaunching` 先设策略、在 `applicationDidFinishLaunching` 关闭 SwiftUI `WindowGroup` 的启动窗口，以保证“仅菜单栏”启动；语言写入应用域 `AppleLanguages`，因此菜单/通知等进程级文案统一在重启后生效，设置页提供「立即重新启动」。改动不触碰 Core 与 UniFFI DTO，Windows 端不受影响。
 - macOS 凭据读取失败会作为设置加载错误呈现，不再静默当成“未配置”。`CredentialSettingsTransaction` 将 Keychain 写入与 Rust 设置保存串成事务；设置保存失败时回滚旧 token，回滚失败时错误明确包含两阶段失败信息，表单恢复旧设置并尝试恢复旧连接。
 - Xcode 单元测试用注入的 in-memory closures 覆盖事务成功与设置保存失败时的旧凭据恢复；不读取或修改真实 Keychain。
 - ### Windows 凭据与设置

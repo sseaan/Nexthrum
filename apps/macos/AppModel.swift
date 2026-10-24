@@ -91,6 +91,10 @@ final class AppModel: ObservableObject {
 
     let launchAtLoginService = LaunchAtLoginService()
 
+    /// Host-only UI preferences (Dock visibility, language); not part of
+    /// `BridgeSettings` because the shared core has no say in them.
+    let preferences = AppPreferences()
+
     let bridge = BridgeService()
 
     let credentialStore: CredentialStore = KeychainCredentialStore()
